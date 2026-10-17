@@ -10,6 +10,8 @@ const CHAPTERS: Record<string, () => Promise<ChapterModule>> = {
   chapter_array_and_linkedlist: () => import('./chapters/arrayAndLinkedlist'),
   chapter_stack_and_queue: () => import('./chapters/stackAndQueue'),
   chapter_hashing: () => import('./chapters/hashing'),
+  chapter_tree: () => import('./chapters/tree'),
+  chapter_heap: () => import('./chapters/heap'),
 };
 
 /** Loads a figure by `chapter/id`, e.g. `chapter_hashing/hash_function`. */

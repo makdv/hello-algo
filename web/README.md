@@ -118,8 +118,8 @@ narration are translated.
 name; a `<1>`, `<2>` … sequence becomes one id ending in `_steps`). The converter replaces
 those images with `<!-- ha:figure chapter/id :: caption -->`, which the remark plugin turns
 into `<Fig>`. Each chapter's figures live in one module under `src/figures/chapters/` and
-load with the page. Redrawn so far: chapters 1–6 (introduction, complexity analysis, data
-structures, arrays and linked lists, stacks and queues, hashing). `src/figures/figures.test.tsx` checks that every registered figure
+load with the page. Redrawn so far: chapters 1–8 (introduction, complexity analysis, data
+structures, arrays and linked lists, stacks and queues, hashing, trees, heaps). `src/figures/figures.test.tsx` checks that every registered figure
 exists in the book, builds well-formed scenes in every locale, resolves its code lines,
 and renders.
 

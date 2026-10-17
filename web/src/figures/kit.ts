@@ -380,3 +380,84 @@ export function brace(id: string, a: number, b: number, at: number, side: 'left'
       : `M ${a} ${at} Q ${a} ${at + s * depth} ${a + depth} ${at + s * depth} L ${mid - depth} ${at + s * depth} Q ${mid} ${at + s * depth} ${mid} ${at + s * depth * 2} Q ${mid} ${at + s * depth} ${mid + depth} ${at + s * depth} L ${b - depth} ${at + s * depth} Q ${b} ${at + s * depth} ${b} ${at}`;
   return { kind: 'path', id, d, tone, width: 1.25 };
 }
+
+// ── Binary trees with node identity ───────────────────────────────────
+
+/** A binary tree node. `id` is the node's identity: keep it stable so moves (rotations, swaps) animate. */
+export interface TreeSpec {
+  id: string;
+  v: Rich | number;
+  l?: TreeSpec | null;
+  r?: TreeSpec | null;
+  tone?: Tone;
+  dim?: boolean;
+  ring?: boolean;
+  dashed?: boolean;
+}
+
+/**
+ * Builds a tree from a level-order array, as the book stores trees (`null` = no node).
+ * Ids default to `n<value>`; pass `id` when values repeat.
+ */
+export function treeFromLevels(values: (number | string | null)[], id: (v: number | string, index: number) => string = (v) => `n${v}`): TreeSpec | null {
+  const nodes = values.map((v, i) => (v === null ? null : ({ id: id(v, i), v } as TreeSpec)));
+  nodes.forEach((n, i) => {
+    if (!n) return;
+    n.l = nodes[2 * i + 1] ?? null;
+    n.r = nodes[2 * i + 2] ?? null;
+  });
+  return nodes[0] ?? null;
+}
+
+/** Every node of a tree in preorder, with its depth and slot (position within its level, as in a complete tree). */
+export function treeWalk(root: TreeSpec | null): { node: TreeSpec; depth: number; slot: number; parent: TreeSpec | null }[] {
+  const out: { node: TreeSpec; depth: number; slot: number; parent: TreeSpec | null }[] = [];
+  const go = (n: TreeSpec | null | undefined, depth: number, slot: number, parent: TreeSpec | null) => {
+    if (!n) return;
+    out.push({ node: n, depth, slot, parent });
+    go(n.l, depth + 1, slot * 2, n);
+    go(n.r, depth + 1, slot * 2 + 1, n);
+  };
+  go(root, 0, 0, null);
+  return out;
+}
+
+/**
+ * Draws a binary tree: circles at slot positions (level d has 2^d evenly spaced slots across
+ * `left..left+width`) and one edge per child, id'd by the child, so a node that changes parent
+ * keeps its edge and both glide. Returns the drawn circles by node id for attaching labels.
+ */
+export function drawTree(
+  prefix: string,
+  root: TreeSpec | null,
+  opts: { left: number; width: number; top: number; gap: number; r?: number; size?: number; edgeTone?: Tone },
+) {
+  const { left, width, top, gap, r = 17, size } = opts;
+  const boxes = new Map<string, BoxNode>();
+  const nodes: SceneNode[] = [];
+  const walk = treeWalk(root);
+  for (const { node, depth, slot } of walk) {
+    const cx = left + ((slot + 0.5) * width) / 2 ** depth;
+    const cy = top + depth * gap;
+    const b = box(node.id, cx - r, cy - r, typeof node.v === 'number' ? String(node.v) : node.v, {
+      w: r * 2,
+      h: r * 2,
+      shape: 'circle',
+      size: size ?? (r < 15 ? 12 : 14),
+      tone: node.tone ?? 'ok',
+      dim: node.dim,
+      ring: node.ring,
+      dashed: node.dashed,
+    });
+    boxes.set(node.id, b);
+  }
+  for (const { node, parent } of walk) {
+    if (!parent) continue;
+    nodes.push(link(`${prefix}e:${node.id}`, boxes.get(parent.id)!, boxes.get(node.id)!, { pad: 2, width: 1.5, tone: opts.edgeTone, dim: node.dim }));
+  }
+  nodes.push(...boxes.values());
+  return { nodes, boxes };
+}
+
+/** Height of a tree (number of edges on the longest root-to-leaf path; −1 for an empty tree). */
+export const treeHeight = (n: TreeSpec | null | undefined): number => (n ? 1 + Math.max(treeHeight(n.l), treeHeight(n.r)) : -1);
