@@ -1,6 +1,15 @@
 # Hello Algo web (Rspress 2)
 
-The redesigned site: Rspress 2 with interactive, trace-driven visualizers.
+An experimental, unofficial redesign of the [Hello Algo](https://github.com/krahets/hello-algo) site:
+Rspress 2 with interactive, trace-driven visualizers.
+
+> **Attribution.** The book's text, code, images and translations are the work of
+> [krahets](https://github.com/krahets) and the
+> [Hello Algo contributors](https://github.com/krahets/hello-algo/graphs/contributors), licensed under
+> [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). This folder adds a
+> new site engine, design and visualizers on top of that content; it is a modified version,
+> not endorsed by the original authors, and is shared under the same license. The official site is
+> [hello-algo.com](https://www.hello-algo.com). Every page of the built site carries this credit in its footer.
 
 Uses [Bun](https://bun.sh) for packages and scripts and [Rstest](https://rstest.rs) for tests.
 

@@ -1,0 +1,32 @@
+.ha-site-footer {
+  margin-top: 40px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ha-border);
+  color: var(--ha-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.ha-site-footer p {
+  margin: 0 0 4px;
+}
+
+.ha-site-footer a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ha-site-footer a:hover {
+  color: var(--ha-accent);
+}
+
+.ha-site-footer__outside {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px 32px;
+}
+
+.ha-site-footer__outside .ha-site-footer {
+  margin-top: 0;
+}
