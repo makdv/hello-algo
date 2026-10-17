@@ -111,7 +111,7 @@ export default defineConfig({
     }),
   },
   markdown: {
-    globalComponents: ['CodeTabs', 'CodeTab', 'StepFrames', 'AlgoFigure'].map((c) => path.join(__dirname, `src/mdx/${c}.tsx`)),
+    globalComponents: ['CodeTabs', 'CodeTab', 'StepFrames', 'AlgoFigure', 'Fig'].map((c) => path.join(__dirname, `src/mdx/${c}.tsx`)),
     remarkPlugins: [
       remarkMath,
       [

@@ -1,11 +1,11 @@
-import type { ArrayFrame, Mark } from '../engine/types';
+import type { Mark } from '../engine/types';
 import type { Player } from '../engine/usePlayer';
 import type { UiText } from '../i18n/ui';
 
 const TICK_HEIGHT: Record<Mark, number> = { idle: 7, cmp: 12, swp: 20, done: 16 };
 
 /** Step ticks colored by event kind, plus a scrubber. */
-export function Timeline({ player, tones, t }: { player: Player<ArrayFrame>; tones: Record<string, Mark>; t: UiText }) {
+export function Timeline({ player, tones, t }: { player: Player<{ kind: string }>; tones: Record<string, Mark>; t: UiText }) {
   return (
     <div className="ha-timeline">
       <div className="ha-timeline__ticks" aria-hidden="true">
@@ -59,7 +59,7 @@ export function Transport({
   showPlay = true,
   showRestart = false,
 }: {
-  player: Player<ArrayFrame>;
+  player: Player<{ kind: string }>;
   t: UiText;
   showPlay?: boolean;
   showRestart?: boolean;
@@ -90,7 +90,7 @@ export function Transport({
 }
 
 /** Arrow keys step, space plays or pauses. Attach to a focusable player container. */
-export function playerKeyHandler(player: Player<ArrayFrame>, enabled = true) {
+export function playerKeyHandler(player: Player<{ kind: string }>, enabled = true) {
   return (e: React.KeyboardEvent) => {
     if (!enabled) return;
     const target = e.target as HTMLElement;

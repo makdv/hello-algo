@@ -1,0 +1,19 @@
+import type { Figure } from './scene';
+
+type ChapterModule = { default: Record<string, Figure> };
+
+/** One bundle per chapter, loaded when a page with its figures opens. */
+const CHAPTERS: Record<string, () => Promise<ChapterModule>> = {
+  chapter_array_and_linkedlist: () => import('./chapters/arrayAndLinkedlist'),
+  chapter_stack_and_queue: () => import('./chapters/stackAndQueue'),
+  chapter_hashing: () => import('./chapters/hashing'),
+};
+
+/** Loads a figure by `chapter/id`, e.g. `chapter_hashing/hash_function`. */
+export async function loadFigure(fullId: string): Promise<Figure | null> {
+  const [chapter, id] = fullId.split('/');
+  const mod = await CHAPTERS[chapter]?.();
+  return mod?.default[id] ?? null;
+}
+
+export const CHAPTER_LOADERS = CHAPTERS;

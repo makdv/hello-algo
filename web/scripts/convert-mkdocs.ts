@@ -22,6 +22,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { LOCALES, type LocaleInfo, localePrefix } from './locales.ts';
 import { readNav, routeOf } from './nav.ts';
+import { figureIdOf, hasFigure } from '../src/figures/registry.ts';
 import { PLAYER_PLACEMENTS, SCHOOL_LEVELS } from './players.ts';
 
 const webDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -104,6 +105,17 @@ function playerMarker(ctx: Context, imageLine: string): string | null {
   return `<!-- ha:player ${placement.algorithm} :: ${caption} -->`;
 }
 
+/** If this figure has been redrawn (src/figures), returns the marker the remark plugin turns into `<Fig>`. */
+function figureMarker(ctx: Context, imageLine: string, inSequence: boolean): string | null {
+  const m = imageLine.match(/!\[([^\]]*)\]\(([^)\s]+)/);
+  if (!m) return null;
+  const chapter = ctx.page.split('/')[0];
+  const id = figureIdOf(m[2].split('/').pop()!, inSequence);
+  if (!hasFigure(chapter, id)) return null;
+  const caption = m[1].replace(/-->/g, '').trim();
+  return `<!-- ha:figure ${chapter}/${id} :: ${caption} -->`;
+}
+
 function convertBlock(lines: string[], ctx: Context, inTab = false): string[] {
   const out: string[] = [];
   let i = 0;
@@ -137,7 +149,7 @@ function convertBlock(lines: string[], ctx: Context, inTab = false): string[] {
       }
       const steps = items.every((it) => /^<\d+>$/.test(it.label));
       const firstImage = items[0]?.raw.find((l) => /!\[/.test(l));
-      const marker = steps && firstImage ? playerMarker(ctx, firstImage) : null;
+      const marker = steps && firstImage ? (playerMarker(ctx, firstImage) ?? figureMarker(ctx, firstImage, true)) : null;
       if (marker) {
         out.push(marker, '');
       } else if (steps) {
@@ -185,8 +197,8 @@ function convertBlock(lines: string[], ctx: Context, inTab = false): string[] {
       continue;
     }
 
-    // A standalone figure with an interactive replacement (not a frame inside a step sequence).
-    const single = !inTab && /^!\[/.test(line) ? playerMarker(ctx, line) : null;
+    // A standalone figure with an interactive or redrawn replacement (not a frame inside a step sequence).
+    const single = !inTab && /^!\[/.test(line) ? (playerMarker(ctx, line) ?? figureMarker(ctx, line, false)) : null;
     out.push(single ?? convertLine(line, ctx));
     i++;
   }

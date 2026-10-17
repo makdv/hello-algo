@@ -16,7 +16,7 @@ Uses [Bun](https://bun.sh) for packages and scripts and [Rstest](https://rstest.
 ```bash
 bun install
 bun run dev        # converts every book, then serves http://localhost:3000
-bun run test       # rstest: trace engine and snippet extraction
+bun run test       # rstest: traces, figures and snippet extraction
 bun run typecheck
 bun run build      # converts, then builds the static site into doc_build/
 ```
@@ -99,6 +99,29 @@ To add an algorithm: write its trace and spec, add it to the registry, map its f
 `PLAYER_PLACEMENTS` (and `SCHOOL_LEVELS`), and the shared tests in
 `src/algorithms/algorithms.test.ts` check sorting, anchors and narration in every locale.
 
+## Redrawn figures
+
+The book's static images are being replaced, chapter by chapter, with figures drawn in
+the browser (`src/figures/`). A figure is plain data: a *scene* of boxes, list nodes,
+arrows, labels and panels in a fixed coordinate space, built with the helpers in
+`src/figures/kit.ts` and rendered as SVG by `SceneView`. Colors come from the theme
+tokens, so every figure follows the six palettes and dark mode, and all labels and
+narration are translated.
+
+- A **static figure** is one scene, plus an optional legend and notes.
+- A **step figure** is a list of scenes with narration (and, where the book has code, the
+  running line in Python and Java). Nodes keep their ids between steps, so they glide to
+  new positions instead of jumping.
+
+`src/figures/registry.ts` lists which images are redrawn (by chapter folder and image
+name; a `<1>`, `<2>` … sequence becomes one id ending in `_steps`). The converter replaces
+those images with `<!-- ha:figure chapter/id :: caption -->`, which the remark plugin turns
+into `<Fig>`. Each chapter's figures live in one module under `src/figures/chapters/` and
+load with the page. Redrawn so far: chapters 4–6 (arrays and linked lists, stacks and
+queues, hashing). `src/figures/figures.test.tsx` checks that every registered figure
+exists in the book, builds well-formed scenes in every locale, resolves its code lines,
+and renders.
+
 ## Layout
 
 - `content/<locale>/` – hand-written pages that override generated ones.
@@ -109,6 +132,7 @@ To add an algorithm: write its trace and spec, add it to the registry, map its f
 - `src/engine/` – trace types, playback (`usePlayer`), Predict mode, code extraction and highlighting.
 - `src/algorithms/` – one recorded-trace implementation per algorithm, with code anchors per language, and the registry.
 - `src/components/` – the compact player (Watch / Predict), the Explore workbench, array stage, code view.
-- `src/mdx/` – components available in every page: `CodeTabs`, `CodeTab`, `StepFrames`, `AlgoFigure`.
+- `src/mdx/` – components available in every page: `CodeTabs`, `CodeTab`, `StepFrames`, `AlgoFigure`, `Fig`.
+- `src/figures/` – redrawn book figures: scene model, layout kit, SVG renderer, step player, one module per chapter.
 - `src/i18n/` – locale helpers and interface text for the players and the School view.
 - `src/school/` – the cartoon School view: level map, levels, stars.

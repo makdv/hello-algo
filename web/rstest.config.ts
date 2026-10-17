@@ -6,7 +6,7 @@ import { LOCALES } from './scripts/locales.ts';
 const dir = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  include: ['src/**/*.test.ts'],
+  include: ['src/**/*.test.{ts,tsx}'],
   testEnvironment: 'node',
   resolve: {
     alias: {
@@ -15,6 +15,8 @@ export default defineConfig({
     },
   },
   tools: {
+    // Components use the automatic JSX runtime, as in the site build.
+    swc: { jsc: { transform: { react: { runtime: 'automatic' } } } },
     // Same as the site build: code files are imported as plain text.
     rspack: (_config, { appendRules }) => {
       appendRules({ resourceQuery: /raw/, test: /\.(py|java|cpp|c|h|go|rs|ts|js|swift|kt|rb|dart|zig|cs)$/, type: 'asset/source' });
