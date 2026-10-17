@@ -11,11 +11,12 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "allowImportingTsExtensions": true,
     "types": ["@rsbuild/core/types", "node"],
     "paths": {
       "@viz/*": ["./src/*"],
       "@codes/*": ["../en/codes/*"]
     }
   },
-  "include": ["src", "theme", "docs", "rspress.config.ts"]
+  "include": ["src", "theme", "docs", "content", "plugins", "scripts", "rspress.config.ts"]
 }

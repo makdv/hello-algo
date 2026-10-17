@@ -3,9 +3,7 @@ title: Bubble sort
 ---
 
 import { AlgoPlayer } from '@viz/components/AlgoPlayer';
-import { SourceTabs } from '@viz/components/SourceTabs';
 import { bubbleSort } from '@viz/algorithms/bubbleSort';
-import { bubbleSortListing, bubbleSortWithFlagListing } from '@viz/algorithms/bubbleSortListings';
 
 # Bubble sort
 
@@ -28,7 +26,9 @@ Assume the array has length $n$. The steps of bubble sort are shown in the figur
 
 Example code is as follows:
 
-<SourceTabs sources={bubbleSortListing} />
+```src
+[file]{bubble_sort}-[class]{}-[func]{bubble_sort}
+```
 
 ## Efficiency optimization
 
@@ -36,7 +36,9 @@ We can observe that if no swaps occur during a round of "bubbling", the array is
 
 After this optimization, the worst-case and average-case time complexities of bubble sort remain $O(n^2)$; however, when the input array is already sorted, the best-case time complexity becomes $O(n)$.
 
-<SourceTabs sources={bubbleSortWithFlagListing} />
+```src
+[file]{bubble_sort}-[class]{}-[func]{bubble_sort_with_flag}
+```
 
 ## Algorithm characteristics
 

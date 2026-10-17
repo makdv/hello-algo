@@ -28,9 +28,13 @@ export function useCodeTokens(code: string, lang: LangId): ThemedToken[][] | nul
   useEffect(() => {
     let live = true;
     setTokens(null);
-    getHighlighter().then((h) => {
-      if (live) setTokens(h.codeToTokensBase(code, { lang, theme: 'css-variables' }));
-    });
+    getHighlighter()
+      .then((h) => {
+        if (live) setTokens(h.codeToTokensBase(code, { lang, theme: 'css-variables' }));
+      })
+      .catch(() => {
+        // Grammar not bundled for this language: keep plain text.
+      });
     return () => {
       live = false;
     };

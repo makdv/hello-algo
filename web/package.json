@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "rspress",
-    "build": "rspress build",
+    "convert": "node scripts/convert-mkdocs.ts",
+    "dev": "npm run convert && rspress",
+    "build": "npm run convert && rspress build",
     "preview": "rspress preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"

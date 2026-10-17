@@ -3,8 +3,28 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from '@rspress/core';
 import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
+import { remarkHelloAlgo } from './plugins/remarkHelloAlgo';
+import { readNav, routeOf } from './scripts/nav.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const repoDir = path.join(__dirname, '..');
+
+/** Sidebar built from the book's own navigation in en/mkdocs.yml. */
+function bookSidebar() {
+  return readNav(path.join(repoDir, 'en/mkdocs.yml')).map((chapter) => {
+    const index = chapter.pages.find((p) => p.title === null);
+    const pages = chapter.pages.filter((p) => p.title !== null);
+    if (!pages.length && index) return { text: chapter.title, link: routeOf(index.file) };
+    return {
+      text: chapter.title,
+      ...(index ? { link: routeOf(index.file) } : {}),
+      collapsible: true,
+      collapsed: true,
+      items: pages.map((p) => ({ text: p.title!, link: routeOf(p.file) })),
+    };
+  });
+}
 
 const THEME_IDS = ['lavender', 'lavender-dark', 'mint', 'ocean', 'sepia', 'contrast'];
 const DARK_THEMES = ['lavender-dark', 'ocean'];
@@ -36,20 +56,17 @@ export default defineConfig({
     darkMode: true,
     socialLinks: [{ icon: 'github', mode: 'link', content: 'https://github.com/krahets/hello-algo' }],
     nav: [
-      { text: 'Chapters', link: '/chapter_sorting/bubble_sort' },
+      { text: 'Book', link: '/chapter_hello_algo/' },
+      { text: 'Bubble sort demo', link: '/chapter_sorting/bubble_sort' },
       { text: 'School', link: '/school/bubble_sort' },
     ],
     sidebar: {
-      '/chapter_sorting/': [
-        {
-          text: 'Chapter 11 · Sorting',
-          items: [{ text: '11.3 Bubble sort', link: '/chapter_sorting/bubble_sort' }],
-        },
-      ],
+      '/': bookSidebar(),
     },
   },
   markdown: {
-    remarkPlugins: [remarkMath],
+    globalComponents: ['CodeTabs', 'CodeTab', 'StepFrames'].map((c) => path.join(__dirname, `src/mdx/${c}.tsx`)),
+    remarkPlugins: [remarkMath, [remarkHelloAlgo, { codesDir: path.join(repoDir, 'en/codes'), docsDir: path.join(__dirname, 'docs') }]],
     rehypePlugins: [rehypeKatex],
   },
   builderConfig: {

@@ -1,7 +1,9 @@
+import type { SnippetLang } from './snippets';
+
 /** Visual state of one element in an array-shaped visualization. */
 export type Mark = 'idle' | 'cmp' | 'swp' | 'done';
 
-export type LangId = 'python' | 'java';
+export type LangId = SnippetLang;
 
 /**
  * One recorded step of an algorithm over an array.

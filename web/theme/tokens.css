@@ -245,3 +245,12 @@ kbd {
 .rp-switch-appearance {
   display: none !important;
 }
+
+/* Chapter cover art from the book */
+.ha-cover img {
+  display: block;
+  width: min(100%, 360px);
+  height: auto;
+  margin: 8px auto 24px;
+  border-radius: 14px;
+}

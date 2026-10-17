@@ -752,8 +752,8 @@
   }
 }
 
-/* Code listing with language tabs */
-.ha-source {
+/* Language tabs emitted for the book's code snippets */
+.ha-codetabs {
   margin: 16px 0 24px;
   border: 1px solid var(--ha-border);
   border-radius: 12px;
@@ -761,6 +761,97 @@
   overflow: hidden;
 }
 
-.ha-source .ha-code {
-  padding: 12px 0;
+.ha-codetabs__tabs {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.ha-codetabs__tabs .ha-tabs__tab {
+  flex: none;
+}
+
+.ha-codetabs__panel > div,
+.ha-codetabs__panel .rp-codeblock {
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Step-by-step figures (the book's PNG sequences) */
+.ha-steps {
+  margin: 24px 0 8px;
+  border: 1px solid var(--ha-border);
+  border-radius: 14px;
+  background: var(--ha-surface);
+  overflow: hidden;
+}
+
+.ha-steps:focus-visible {
+  outline: 2px solid var(--ha-accent);
+  outline-offset: 2px;
+}
+
+.ha-steps__frames {
+  background: #ffffff;
+}
+
+.ha-steps__frame p {
+  margin: 0;
+}
+
+.ha-steps__frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.ha-steps__frame[hidden] {
+  display: none;
+}
+
+.ha-steps__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--ha-border);
+}
+
+.ha-steps__dots {
+  flex: 1 1 160px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.ha-steps__dot {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+}
+
+.ha-steps__dot::after {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: var(--ha-border);
+}
+
+.ha-steps__dot.is-current::after {
+  inset: 5px;
+  background: var(--ha-accent);
+}
+
+.ha-steps__count {
+  font-family: var(--ha-font-mono);
+  font-size: 13px;
+  color: var(--ha-muted);
 }
