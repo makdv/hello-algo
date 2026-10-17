@@ -1,0 +1,247 @@
+/*
+ * Hello Algo design tokens.
+ * One semantic token set (--ha-*) with six palettes. Rspress's own variables
+ * and the Shiki css-variables theme are mapped onto these tokens, so the whole
+ * site, code blocks and visualizers follow the selected theme.
+ */
+
+:root,
+html[data-ha-theme='lavender'] {
+  --ha-bg: #f9f8f7;
+  --ha-surface: #ffffff;
+  --ha-surface-2: #f4f2f4;
+  --ha-border: #e8e5e9;
+  --ha-text: #111013;
+  --ha-muted: #6e6a74;
+  --ha-accent: #76539b;
+  --ha-on-accent: #ffffff;
+  --ha-soft: #ece4f3;
+  --ha-on-soft: #2b1840;
+  --ha-cell: #ffffff;
+  --ha-on-cell: #111013;
+  --ha-cell-line: #d9d4dd;
+  --ha-cmp: #ece4f3;
+  --ha-on-cmp: #4b2f6b;
+  --ha-cmp-line: #76539b;
+  --ha-swp: #fbe9cc;
+  --ha-on-swp: #6e4304;
+  --ha-swp-line: #ca8a04;
+  --ha-done: #d6eee4;
+  --ha-on-done: #0b5d46;
+  --ha-done-line: #007a5a;
+  --ha-hl: #efe8f6;
+  --ha-tk-kw: #7b3fa6;
+  --ha-tk-fn: #1f5fb0;
+  --ha-tk-num: #a8570a;
+  --ha-tk-str: #227a4f;
+  --ha-tk-cm: #8b8691;
+}
+
+html[data-ha-theme='lavender-dark'] {
+  --ha-bg: #1a191d;
+  --ha-surface: #1f1e23;
+  --ha-surface-2: #26242b;
+  --ha-border: #2e2b33;
+  --ha-text: #f2f0f4;
+  --ha-muted: #a19ca7;
+  --ha-accent: #c6b0ef;
+  --ha-on-accent: #1c1426;
+  --ha-soft: #3a3046;
+  --ha-on-soft: #e7dcf5;
+  --ha-cell: #232127;
+  --ha-on-cell: #f2f0f4;
+  --ha-cell-line: #3a3640;
+  --ha-cmp: #3a3046;
+  --ha-on-cmp: #e7dcf5;
+  --ha-cmp-line: #c6b0ef;
+  --ha-swp: #3d3014;
+  --ha-on-swp: #f5d48a;
+  --ha-swp-line: #eab308;
+  --ha-done: #15392b;
+  --ha-on-done: #a7ecc5;
+  --ha-done-line: #22c55e;
+  --ha-hl: #2d2735;
+  --ha-tk-kw: #d5b8ff;
+  --ha-tk-fn: #8fc1ff;
+  --ha-tk-num: #f5b26b;
+  --ha-tk-str: #9fdcae;
+  --ha-tk-cm: #837e8a;
+}
+
+html[data-ha-theme='mint'] {
+  --ha-bg: #f6faf7;
+  --ha-surface: #ffffff;
+  --ha-surface-2: #edf4ef;
+  --ha-border: #dbe6df;
+  --ha-text: #10201a;
+  --ha-muted: #55665e;
+  --ha-accent: #0f7a55;
+  --ha-on-accent: #ffffff;
+  --ha-soft: #dcf1e7;
+  --ha-on-soft: #084a33;
+  --ha-cell: #ffffff;
+  --ha-on-cell: #10201a;
+  --ha-cell-line: #cddbd2;
+  --ha-cmp: #e1ebfb;
+  --ha-on-cmp: #1d4a91;
+  --ha-cmp-line: #2f6fd6;
+  --ha-swp: #ffe4d8;
+  --ha-on-swp: #8f2e0e;
+  --ha-swp-line: #e0582b;
+  --ha-done: #0f7a55;
+  --ha-on-done: #ffffff;
+  --ha-done-line: #0b5c40;
+  --ha-hl: #e1f2e9;
+  --ha-tk-kw: #b0306a;
+  --ha-tk-fn: #2156b3;
+  --ha-tk-num: #a85a00;
+  --ha-tk-str: #0f7a55;
+  --ha-tk-cm: #7d8c85;
+}
+
+html[data-ha-theme='ocean'] {
+  --ha-bg: #0b1017;
+  --ha-surface: #111821;
+  --ha-surface-2: #172130;
+  --ha-border: #223042;
+  --ha-text: #e6edf5;
+  --ha-muted: #8fa0b5;
+  --ha-accent: #5cc8ff;
+  --ha-on-accent: #04222f;
+  --ha-soft: #12324a;
+  --ha-on-soft: #bfe8ff;
+  --ha-cell: #141d28;
+  --ha-on-cell: #e6edf5;
+  --ha-cell-line: #2a3a4f;
+  --ha-cmp: #12324a;
+  --ha-on-cmp: #bfe8ff;
+  --ha-cmp-line: #5cc8ff;
+  --ha-swp: #3b2410;
+  --ha-on-swp: #ffcf99;
+  --ha-swp-line: #ff9f43;
+  --ha-done: #123a2c;
+  --ha-on-done: #9ff0c8;
+  --ha-done-line: #34d399;
+  --ha-hl: #16304a;
+  --ha-tk-kw: #ff8fb8;
+  --ha-tk-fn: #5cc8ff;
+  --ha-tk-num: #ffc46b;
+  --ha-tk-str: #9ae6b4;
+  --ha-tk-cm: #6b7c93;
+}
+
+html[data-ha-theme='sepia'] {
+  --ha-bg: #f5efe3;
+  --ha-surface: #fbf7ef;
+  --ha-surface-2: #efe6d4;
+  --ha-border: #e2d6bf;
+  --ha-text: #2b2117;
+  --ha-muted: #6a5a46;
+  --ha-accent: #9c4a1a;
+  --ha-on-accent: #ffffff;
+  --ha-soft: #f1dfcc;
+  --ha-on-soft: #5e2a0b;
+  --ha-cell: #fffaf2;
+  --ha-on-cell: #2b2117;
+  --ha-cell-line: #d8c8aa;
+  --ha-cmp: #dfe7f0;
+  --ha-on-cmp: #213e63;
+  --ha-cmp-line: #3c6496;
+  --ha-swp: #f6d9c4;
+  --ha-on-swp: #74300c;
+  --ha-swp-line: #b8541c;
+  --ha-done: #dfe8cf;
+  --ha-on-done: #34501a;
+  --ha-done-line: #5f7f2e;
+  --ha-hl: #efe1c9;
+  --ha-tk-kw: #8a2f5a;
+  --ha-tk-fn: #2c5a8f;
+  --ha-tk-num: #9c4a1a;
+  --ha-tk-str: #4f6f22;
+  --ha-tk-cm: #8c7a62;
+}
+
+html[data-ha-theme='contrast'] {
+  --ha-bg: #ffffff;
+  --ha-surface: #ffffff;
+  --ha-surface-2: #f0f0f0;
+  --ha-border: #bdbdbd;
+  --ha-text: #000000;
+  --ha-muted: #333333;
+  --ha-accent: #000000;
+  --ha-on-accent: #ffffff;
+  --ha-soft: #e6e6e6;
+  --ha-on-soft: #000000;
+  --ha-cell: #ffffff;
+  --ha-on-cell: #000000;
+  --ha-cell-line: #000000;
+  --ha-cmp: #d4e3ff;
+  --ha-on-cmp: #001a4d;
+  --ha-cmp-line: #0040c0;
+  --ha-swp: #ffdcb0;
+  --ha-on-swp: #4d2400;
+  --ha-swp-line: #a65300;
+  --ha-done: #111111;
+  --ha-on-done: #ffffff;
+  --ha-done-line: #000000;
+  --ha-hl: #e3e3e3;
+  --ha-tk-kw: #6b00b3;
+  --ha-tk-fn: #0040c0;
+  --ha-tk-num: #8a3b00;
+  --ha-tk-str: #006b2e;
+  --ha-tk-cm: #555555;
+}
+
+/* Map Rspress and Shiki variables onto the active palette. */
+:root {
+  --rp-c-bg: var(--ha-bg);
+  --rp-c-bg-soft: var(--ha-surface-2);
+  --rp-c-bg-mute: var(--ha-surface-2);
+  --rp-c-bg-alt: var(--ha-surface);
+  --rp-c-divider: var(--ha-border);
+  --rp-c-divider-light: var(--ha-border);
+  --rp-c-text-0: var(--ha-text);
+  --rp-c-text-1: var(--ha-text);
+  --rp-c-text-2: var(--ha-muted);
+  --rp-c-text-code: var(--ha-on-soft);
+  --rp-c-text-code-bg: var(--ha-soft);
+  --rp-c-text-code-border: transparent;
+  --rp-c-brand: var(--ha-accent);
+  --rp-c-brand-light: var(--ha-accent);
+  --rp-c-brand-lighter: var(--ha-soft);
+  --rp-c-brand-dark: var(--ha-accent);
+  --rp-c-brand-darker: var(--ha-on-soft);
+  --rp-c-brand-tint: var(--ha-soft);
+  --rp-c-link: var(--ha-accent);
+  --rp-code-block-bg: var(--ha-surface-2);
+  --rp-code-title-bg: var(--ha-surface-2);
+  --rp-code-line-highlight-color: var(--ha-hl);
+  --shiki-foreground: var(--ha-text);
+  --shiki-token-keyword: var(--ha-tk-kw);
+  --shiki-token-function: var(--ha-tk-fn);
+  --shiki-token-constant: var(--ha-tk-num);
+  --shiki-token-string: var(--ha-tk-str);
+  --shiki-token-string-expression: var(--ha-tk-str);
+  --shiki-token-comment: var(--ha-tk-cm);
+  --shiki-token-parameter: var(--ha-text);
+  --shiki-token-punctuation: var(--ha-muted);
+  --shiki-token-link: var(--ha-accent);
+
+  --ha-font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Noto Sans SC', sans-serif;
+  --ha-font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+
+body {
+  font-family: var(--ha-font-sans);
+}
+
+code,
+pre,
+kbd {
+  font-family: var(--ha-font-mono);
+}
+
+/* The theme picker replaces Rspress's light/dark toggle. */
+.rp-switch-appearance {
+  display: none !important;
+}
