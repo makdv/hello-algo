@@ -461,3 +461,79 @@ export function drawTree(
 
 /** Height of a tree (number of edges on the longest root-to-leaf path; −1 for an empty tree). */
 export const treeHeight = (n: TreeSpec | null | undefined): number => (n ? 1 + Math.max(treeHeight(n.l), treeHeight(n.r)) : -1);
+
+// ── Graphs ────────────────────────────────────────────────────────────
+
+export interface GraphVertex {
+  /** Stable id: keep it between frames so the vertex can move or recolor smoothly. */
+  id: string;
+  v: Rich | number;
+  x: number;
+  y: number;
+  tone?: Tone;
+  dim?: boolean;
+  ring?: boolean;
+  dashed?: boolean;
+}
+
+export interface GraphEdge {
+  a: string;
+  b: string;
+  /** Draw an arrowhead from a to b. */
+  directed?: boolean;
+  weight?: Rich | number;
+  tone?: Tone;
+  dim?: boolean;
+  dashed?: boolean;
+  /** Curve the edge sideways (useful for a pair of opposite directed edges). */
+  bend?: number;
+}
+
+/**
+ * Draws a graph with vertices as circles at given centers. Edge ids are `<prefix>e:<a>-<b>`
+ * with the endpoints sorted for undirected edges, so the same edge keeps its id across frames.
+ * Weights sit at the edge's midpoint on a small chip.
+ */
+export function drawGraph(prefix: string, vertices: GraphVertex[], edges: GraphEdge[], opts: { r?: number; size?: number } = {}) {
+  const { r = 18, size } = opts;
+  const boxes = new Map<string, BoxNode>();
+  for (const v of vertices) {
+    boxes.set(
+      v.id,
+      box(v.id, v.x - r, v.y - r, typeof v.v === 'number' ? String(v.v) : v.v, {
+        w: r * 2,
+        h: r * 2,
+        shape: 'circle',
+        size: size ?? 14,
+        tone: v.tone ?? 'ok',
+        dim: v.dim,
+        ring: v.ring,
+        dashed: v.dashed,
+      }),
+    );
+  }
+  const nodes: SceneNode[] = [];
+  for (const e of edges) {
+    const key = e.directed ? `${e.a}>${e.b}` : [e.a, e.b].sort().join('-');
+    const A = boxes.get(e.a)!;
+    const B = boxes.get(e.b)!;
+    nodes.push(link(`${prefix}e:${key}`, A, B, { head: e.directed ? 'end' : 'none', tone: e.tone, dim: e.dim, dashed: e.dashed, bend: e.bend, width: 1.75, pad: e.directed ? 3 : 1 }));
+    if (e.weight !== undefined) {
+      const ca = center(A);
+      const cb = center(B);
+      nodes.push(chip(`${prefix}w:${key}`, (ca.x + cb.x) / 2, (ca.y + cb.y) / 2 - 12, typeof e.weight === 'number' ? String(e.weight) : e.weight, { size: 11, dim: e.dim }));
+    }
+  }
+  nodes.push(...boxes.values());
+  return { nodes, boxes };
+}
+
+/** Vertices evenly placed on a circle, starting at the top and going clockwise. */
+export function ringLayout(ids: string[], cx: number, cy: number, radius: number): Record<string, { x: number; y: number }> {
+  return Object.fromEntries(
+    ids.map((id, k) => {
+      const a = -Math.PI / 2 + (2 * Math.PI * k) / ids.length;
+      return [id, { x: cx + radius * Math.cos(a), y: cy + radius * Math.sin(a) }];
+    }),
+  );
+}

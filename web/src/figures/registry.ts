@@ -122,6 +122,32 @@ export const FIGURE_IDS: Record<string, string[]> = {
     'top_k_sorting',
     'top_k_heap_steps',
   ],
+  chapter_graph: [
+    'linkedlist_tree_graph',
+    'directed_graph',
+    'connected_graph',
+    'weighted_graph',
+    'adjacency_matrix',
+    'adjacency_list',
+    'adjacency_matrix_steps',
+    'adjacency_list_steps',
+    'graph_bfs',
+    'graph_bfs_steps',
+    'graph_dfs',
+    'graph_dfs_steps',
+  ],
+  chapter_searching: [
+    'binary_search_example',
+    'binary_search_ranges',
+    'binary_search_insertion_example',
+    'binary_search_insertion_naive',
+    'binary_search_insertion_steps',
+    'binary_search_edge_by_element',
+    'binary_search_right_edge_by_left_edge',
+    'two_sum_brute_force',
+    'two_sum_hashtable_steps',
+    'searching_algorithms',
+  ],
 };
 
 /** The figure id for an image: its name, or for the first frame of a step sequence, the sequence's name. */
