@@ -135,7 +135,9 @@
   stroke-width: 1.5;
 }
 
+.ha-sn--path .ha-sn__shape { stroke-linecap: round; stroke-linejoin: round; transition: d 0.45s cubic-bezier(0.3, 0.7, 0.3, 1); }
 .ha-sn--path.is-filled .ha-sn__shape { fill: var(--f-bg); }
+.ha-sn--path.is-dashed .ha-sn__shape { stroke-dasharray: 5 4; }
 .ha-sn__on { fill: var(--f-fg); font-weight: 600; }
 
 /* Icons: line drawings. */
@@ -232,6 +234,41 @@
   border-top: 2px solid var(--f-ink);
   border-radius: 0;
 }
+
+/* Reference tables (e.g. ASCII). */
+.ha-fig__tables {
+  display: grid;
+  /* As many tables side by side as fit; each needs room for its widest row. */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr));
+  gap: 12px;
+  padding: 12px;
+  overflow-x: auto;
+  /* Long tables scroll inside the figure instead of stretching the page. */
+  max-height: 560px;
+  overflow-y: auto;
+}
+
+.ha-fig__table {
+  width: 100%;
+  margin: 0 !important;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  line-height: 1.35;
+  display: table !important;
+}
+
+.ha-fig__table th,
+.ha-fig__table td {
+  padding: 3px 8px !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--ha-border) !important;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.ha-fig__table th { color: var(--ha-muted); font-weight: 600; background: var(--ha-surface-2); position: sticky; top: -12px; }
+.ha-fig__table tr:nth-child(2n) td { background: color-mix(in srgb, var(--ha-surface-2) 50%, transparent); }
+.ha-fig__table .is-mono { font-family: var(--ha-font-mono); }
 
 @media (max-width: 640px) {
   .ha-fig__stage { padding: 14px 2px; }

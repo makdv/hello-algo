@@ -89,6 +89,7 @@ export interface PathNode extends Base {
   size?: number;
   /** Outline width; defaults to 1.5. */
   width?: number;
+  dashed?: boolean;
 }
 
 export type IconName = 'cpu' | 'cache' | 'ram' | 'disk';
@@ -141,4 +142,17 @@ export interface StepFigure {
   sources?(locale: Locale): Partial<Record<LangId, SourceSpec>>;
 }
 
-export type Figure = StaticFigure | StepFigure;
+/** A table of text, for figures that are really reference tables (e.g. ASCII). */
+export interface TableFigure {
+  type: 'table';
+  build(locale: Locale): {
+    head: string[];
+    rows: string[][];
+    /** Split the rows into this many side-by-side tables on wide screens. */
+    columns?: number;
+    /** Indices of columns shown in the monospace face. */
+    mono?: number[];
+  };
+}
+
+export type Figure = StaticFigure | StepFigure | TableFigure;

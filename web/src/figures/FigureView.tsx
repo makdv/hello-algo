@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, type CSSProperties } from 'react';
 import { CodeView } from '../components/CodeView';
 import { playerKeyHandler, Timeline, Transport } from '../components/Controls';
 import { useCodeLang } from '../engine/useCodeLang';
@@ -6,7 +6,7 @@ import { usePlayer } from '../engine/usePlayer';
 import type { LangId } from '../engine/types';
 import type { Locale } from '../i18n/locale';
 import { ui } from '../i18n/ui';
-import type { Figure, LegendItem, StaticFigure, StepFigure } from './scene';
+import type { Figure, LegendItem, StaticFigure, StepFigure, TableFigure } from './scene';
 import { SceneView } from './SceneView';
 import '../components/viz.css';
 import './figures.css';
@@ -104,7 +104,45 @@ function StepView({ fig, locale, caption }: { fig: StepFigure; locale: Locale; c
   );
 }
 
-/** A redrawn book figure: a still scene, or an animated sequence with step controls. */
+function TableView({ fig, locale, caption }: { fig: TableFigure; locale: Locale; caption?: string }) {
+  const { head, rows, columns = 1, mono = [] } = useMemo(() => fig.build(locale), [fig, locale]);
+  const per = Math.ceil(rows.length / columns);
+  const parts = Array.from({ length: columns }, (_, k) => rows.slice(k * per, (k + 1) * per));
+  return (
+    <figure className="ha-fig">
+      <div className="ha-fig__frame">
+        <div className="ha-fig__tables" style={{ ['--cols' as string]: columns } as CSSProperties}>
+          {parts.map((part, k) => (
+            <table key={k} className="ha-fig__table">
+              <thead>
+                <tr>
+                  {head.map((h) => (
+                    <th key={h}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {part.map((row, r) => (
+                  <tr key={r}>
+                    {row.map((cell, c) => (
+                      <td key={c} className={mono.includes(c) ? 'is-mono' : undefined}>
+                        {cell}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ))}
+        </div>
+      </div>
+      {caption && <figcaption className="ha-player__caption">{caption}</figcaption>}
+    </figure>
+  );
+}
+
+/** A redrawn book figure: a still scene, an animated sequence with step controls, or a table. */
 export function FigureView({ fig, locale, caption }: { fig: Figure; locale: Locale; caption?: string }) {
+  if (fig.type === 'table') return <TableView fig={fig} locale={locale} caption={caption} />;
   return fig.type === 'static' ? <StaticView fig={fig} locale={locale} caption={caption} /> : <StepView fig={fig} locale={locale} caption={caption} />;
 }

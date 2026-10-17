@@ -109,6 +109,7 @@ tokens, so every figure follows the six palettes and dark mode, and all labels a
 narration are translated.
 
 - A **static figure** is one scene, plus an optional legend and notes.
+- A **table figure** is an HTML table, for figures that are really reference tables (ASCII).
 - A **step figure** is a list of scenes with narration (and, where the book has code, the
   running line in Python and Java). Nodes keep their ids between steps, so they glide to
   new positions instead of jumping.
@@ -117,8 +118,8 @@ narration are translated.
 name; a `<1>`, `<2>` … sequence becomes one id ending in `_steps`). The converter replaces
 those images with `<!-- ha:figure chapter/id :: caption -->`, which the remark plugin turns
 into `<Fig>`. Each chapter's figures live in one module under `src/figures/chapters/` and
-load with the page. Redrawn so far: chapters 4–6 (arrays and linked lists, stacks and
-queues, hashing). `src/figures/figures.test.tsx` checks that every registered figure
+load with the page. Redrawn so far: chapters 1–6 (introduction, complexity analysis, data
+structures, arrays and linked lists, stacks and queues, hashing). `src/figures/figures.test.tsx` checks that every registered figure
 exists in the book, builds well-formed scenes in every locale, resolves its code lines,
 and renders.
 

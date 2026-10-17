@@ -1,4 +1,4 @@
-import type { ArrowNode, BoxNode, Rich, RegionNode, SceneNode, Segment, TextNode, Tone } from './scene';
+import type { ArrowNode, BoxNode, PathNode, Rich, RegionNode, SceneNode, Segment, TextNode, Tone } from './scene';
 
 /**
  * Layout helpers. Each returns scene nodes at computed positions, so figure files describe
@@ -250,4 +250,133 @@ export function tag(id: string, target: { x: number; y: number; w: number; h: nu
 /** Vertical ellipsis (⋮) used for elided rows. */
 export function ellipsis(id: string, x: number, y: number, tone: Tone = 'muted') {
   return text(id, x, y, '⋮', { anchor: 'middle', size: 16, tone });
+}
+
+// ── Charts ────────────────────────────────────────────────────────────
+
+export interface Plot {
+  nodes: SceneNode[];
+  /** Data x → scene x. */
+  px(x: number): number;
+  /** Data y → scene y. */
+  py(y: number): number;
+  /** A sampled curve of `f`, clipped at the top of the plot; returns the path and where it ends. */
+  curve(id: string, f: (x: number) => number, opts?: { tone?: Tone; from?: number; to?: number; width?: number; dashed?: boolean; dim?: boolean }): { node: PathNode; end: [number, number] };
+}
+
+/**
+ * Axes for a chart. The area spans `x..x+w` and `y..y+h` in scene units and shows data from
+ * `0..xMax` and `0..yMax`; ticks under the x axis are labelled with their values.
+ */
+export function plot(
+  id: string,
+  area: { x: number; y: number; w: number; h: number },
+  opts: { xMin?: number; xMax: number; yMax: number; xTicks?: number[]; xLabel?: Rich; yLabel?: Rich },
+): Plot {
+  const { x, y, w, h } = area;
+  const xMin = opts.xMin ?? 0;
+  const px = (v: number) => x + ((v - xMin) / (opts.xMax - xMin)) * w;
+  const py = (v: number) => y + h - (v / opts.yMax) * h;
+  const nodes: SceneNode[] = [
+    arrow(`${id}:x`, [x, y + h], [x + w + 14, y + h], { tone: 'muted', width: 1.25 }),
+    arrow(`${id}:y`, [x, y + h], [x, y - 14], { tone: 'muted', width: 1.25 }),
+    ...(opts.xTicks ?? []).map((t) => text(`${id}:t${t}`, px(t), y + h + 16, String(t), { anchor: 'middle', mono: true, size: 11, tone: 'muted' })),
+  ];
+  if (opts.xLabel) nodes.push(text(`${id}:xl`, x + w / 2, y + h + 36, opts.xLabel, { anchor: 'middle', size: 12, tone: 'muted' }));
+  if (opts.yLabel) nodes.push(text(`${id}:yl`, x - 8, y - 22, opts.yLabel, { size: 12, tone: 'muted' }));
+  const curve: Plot['curve'] = (cid, f, o = {}) => {
+    const from = o.from ?? xMin;
+    const to = o.to ?? opts.xMax;
+    const pts: [number, number][] = [];
+    const steps = 80;
+    for (let k = 0; k <= steps; k++) {
+      const xv = from + ((to - from) * k) / steps;
+      const yv = f(xv);
+      if (yv > opts.yMax) {
+        // Stop where the curve leaves the plot.
+        const prev = pts[pts.length - 1];
+        if (prev) pts.push([px(xv), py(opts.yMax)]);
+        break;
+      }
+      pts.push([px(xv), py(Math.max(0, yv))]);
+    }
+    const d = pts.map(([a, b], k) => `${k ? 'L' : 'M'} ${a.toFixed(1)} ${b.toFixed(1)}`).join(' ');
+    return {
+      node: { kind: 'path', id: cid, d, tone: o.tone ?? 'info', width: o.width ?? 2.5, dashed: o.dashed, dim: o.dim },
+      end: pts[pts.length - 1] ?? [px(from), py(0)],
+    };
+  };
+  return { nodes, px, py, curve };
+}
+
+// ── Trees ─────────────────────────────────────────────────────────────
+
+export interface TreeSlot {
+  level: number;
+  /** Position within its level, 0-based. */
+  index: number;
+  x: number;
+  y: number;
+}
+
+/**
+ * Slots of a complete binary tree with `levels` levels, centered in `left..left+width`.
+ * Level k has 2^k slots evenly spread; `levelGap` is the vertical distance between levels.
+ */
+export function binarySlots(levels: number, left: number, width: number, top: number, levelGap: number): TreeSlot[] {
+  const out: TreeSlot[] = [];
+  for (let level = 0; level < levels; level++) {
+    const count = 2 ** level;
+    for (let index = 0; index < count; index++) out.push({ level, index, x: left + ((index + 0.5) * width) / count, y: top + level * levelGap });
+  }
+  return out;
+}
+
+/** Slots for any tree given each node's parent (−1 for the root): leaves are spread evenly, parents sit over their children. */
+export function treeSlots(parents: number[], left: number, width: number, top: number, levelGap: number): TreeSlot[] {
+  const children = parents.map((_, k) => parents.flatMap((p, c) => (p === k ? [c] : [])));
+  const depth = (k: number): number => (parents[k] < 0 ? 0 : depth(parents[k]) + 1);
+  const leaves: number[] = [];
+  const walk = (k: number) => (children[k].length ? children[k].forEach(walk) : leaves.push(k));
+  walk(parents.indexOf(-1));
+  const xs = new Map<number, number>();
+  leaves.forEach((k, i) => xs.set(k, left + ((i + 0.5) * width) / leaves.length));
+  const place = (k: number): number => {
+    if (xs.has(k)) return xs.get(k)!;
+    const cx = children[k].map(place);
+    const x = (Math.min(...cx) + Math.max(...cx)) / 2;
+    xs.set(k, x);
+    return x;
+  };
+  place(parents.indexOf(-1));
+  const perLevel = new Map<number, number>();
+  return parents.map((_, k) => {
+    const level = depth(k);
+    const index = perLevel.get(level) ?? 0;
+    perLevel.set(level, index + 1);
+    return { level, index, x: xs.get(k)!, y: top + level * levelGap };
+  });
+}
+
+// ── Shapes ────────────────────────────────────────────────────────────
+
+/** A flowchart decision: a diamond with a label, centered at cx, cy. */
+export function diamond(id: string, cx: number, cy: number, w: number, h: number, label: Rich, tone: Tone = 'info', extra: Partial<PathNode> = {}): PathNode {
+  const d = `M ${cx} ${cy - h / 2} L ${cx + w / 2} ${cy} L ${cx} ${cy + h / 2} L ${cx - w / 2} ${cy} Z`;
+  return { kind: 'path', id, d, fill: true, tone, text: label, textAt: [cx, cy], size: 13, ...extra };
+}
+
+/**
+ * A curly brace along one side of a span. `side` is where the brace points:
+ * `right` draws `}` from y1 to y2 at x; `down` draws a brace under x1..x2 at y.
+ */
+export function brace(id: string, a: number, b: number, at: number, side: 'left' | 'right' | 'up' | 'down', tone: Tone = 'muted'): PathNode {
+  const depth = 8;
+  const mid = (a + b) / 2;
+  const s = side === 'right' || side === 'down' ? 1 : -1;
+  const d =
+    side === 'left' || side === 'right'
+      ? `M ${at} ${a} Q ${at + s * depth} ${a} ${at + s * depth} ${a + depth} L ${at + s * depth} ${mid - depth} Q ${at + s * depth} ${mid} ${at + s * depth * 2} ${mid} Q ${at + s * depth} ${mid} ${at + s * depth} ${mid + depth} L ${at + s * depth} ${b - depth} Q ${at + s * depth} ${b} ${at} ${b}`
+      : `M ${a} ${at} Q ${a} ${at + s * depth} ${a + depth} ${at + s * depth} L ${mid - depth} ${at + s * depth} Q ${mid} ${at + s * depth} ${mid} ${at + s * depth * 2} Q ${mid} ${at + s * depth} ${mid + depth} ${at + s * depth} L ${b - depth} ${at + s * depth} Q ${b} ${at + s * depth} ${b} ${at}`;
+  return { kind: 'path', id, d, tone, width: 1.25 };
 }

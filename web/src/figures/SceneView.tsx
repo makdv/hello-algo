@@ -21,7 +21,8 @@ function classes(n: SceneNode, leaving: boolean, extra = '') {
 }
 
 function Box({ n, leaving }: { n: BoxNode; leaving: boolean }) {
-  const rx = n.shape === 'circle' ? n.w / 2 : n.shape === 'chip' ? 7 : 8;
+  // Small cells get proportionally smaller corners, so they stay square.
+  const rx = n.shape === 'circle' ? n.w / 2 : n.shape === 'chip' ? 7 : Math.min(8, Math.min(n.w, n.h) / 4);
   const size = n.size ?? (n.shape === 'circle' ? 14 : 15);
   const mono = !n.sans;
   return (
@@ -119,8 +120,8 @@ function Region({ n, leaving }: { n: RegionNode; leaving: boolean }) {
 
 function PathShape({ n, leaving }: { n: PathNode; leaving: boolean }) {
   return (
-    <g className={classes(n, leaving, n.fill ? ' is-filled' : '')}>
-      <path className="ha-sn__shape" d={n.d} style={n.width ? { strokeWidth: n.width } : undefined} />
+    <g className={classes(n, leaving, `${n.fill ? ' is-filled' : ''}${n.dashed ? ' is-dashed' : ''}`)}>
+      <path className="ha-sn__shape" d={n.d} style={{ d: `path("${n.d}")`, ...(n.width ? { strokeWidth: n.width } : {}) } as CSSProperties} />
       {n.text !== undefined && n.textAt && (
         <text className="ha-sn__sans ha-sn__on" x={n.textAt[0]} y={n.textAt[1]} dy="0.35em" textAnchor="middle" fontSize={n.size ?? 14}>
           <RichText value={n.text} />

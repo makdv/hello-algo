@@ -75,6 +75,13 @@ describe.each(all)('%s', (id, fig) => {
         for (const t of [...(legend ?? []).map((x) => x.text), ...(notes ?? [])]) expect(t.length).toBeGreaterThan(2);
         continue;
       }
+      if (fig.type === 'table') {
+        const { head, rows } = fig.build(locale);
+        expect(rows.length).toBeGreaterThan(0);
+        for (const row of rows) expect(row.length, `${id} ${locale}`).toBe(head.length);
+        for (const cell of [...head, ...rows.flat()]) expect(cell, `${id} ${locale}`).not.toMatch(/undefined|NaN/);
+        continue;
+      }
       const { frames } = fig.build(locale);
       expect(frames.length).toBeGreaterThan(1);
       frames.forEach((f, k) => {
@@ -103,6 +110,6 @@ describe.each(all)('%s', (id, fig) => {
 
   it('renders on the server', () => {
     const html = renderToString(<FigureView fig={fig} locale="zh" caption="caption" />);
-    expect(html).toContain('<svg');
+    expect(html).toContain(fig.type === 'table' ? '<table' : '<svg');
   });
 });
