@@ -1,0 +1,5 @@
+node_modules
+doc_build
+# Generated from the MkDocs sources by scripts/convert-mkdocs.ts (everything but public/)
+/docs/*
+!/docs/public/

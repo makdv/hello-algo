@@ -1,0 +1,867 @@
+/* Visualizer components. Colors come only from the --ha-* theme tokens. */
+
+.ha-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.ha-mono {
+  font-family: var(--ha-font-mono);
+}
+
+.ha-muted {
+  color: var(--ha-muted);
+  font-size: 13px;
+}
+
+.ha-grid-paper {
+  background-color: var(--ha-surface);
+  background-image:
+    linear-gradient(var(--ha-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ha-border) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: -1px -1px;
+}
+
+/* State colors shared by cells, bars, buttons and badges. */
+.ha-mark--idle { --m-bg: var(--ha-cell); --m-fg: var(--ha-on-cell); --m-line: var(--ha-cell-line); }
+.ha-mark--cmp { --m-bg: var(--ha-cmp); --m-fg: var(--ha-on-cmp); --m-line: var(--ha-cmp-line); }
+.ha-mark--swp { --m-bg: var(--ha-swp); --m-fg: var(--ha-on-swp); --m-line: var(--ha-swp-line); --m-style: dashed; }
+.ha-mark--done { --m-bg: var(--ha-done); --m-fg: var(--ha-on-done); --m-line: var(--ha-done-line); }
+
+/* Buttons */
+.ha-btn {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--ha-border);
+  background: var(--ha-surface);
+  color: var(--ha-text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.ha-btn:hover {
+  background: var(--ha-surface-2);
+}
+
+.ha-btn:focus-visible,
+.ha-segmented__item:focus-visible,
+.ha-player__frame:focus-visible {
+  outline: 2px solid var(--ha-accent);
+  outline-offset: 2px;
+}
+
+.ha-btn--icon {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+}
+
+.ha-btn--primary {
+  background: var(--ha-accent);
+  border-color: var(--ha-accent);
+  color: var(--ha-on-accent);
+}
+
+.ha-btn--primary:hover {
+  background: var(--ha-accent);
+  filter: brightness(1.08);
+}
+
+.ha-btn--link {
+  border: 0;
+  background: transparent;
+  text-decoration: underline;
+  color: inherit;
+}
+
+.ha-btn--link:hover {
+  background: transparent;
+}
+
+.ha-choice {
+  height: 44px;
+  min-width: 88px;
+  background: var(--m-bg);
+  color: var(--m-fg);
+  border: 2px var(--m-style, solid) var(--m-line);
+  font-weight: 600;
+}
+
+.ha-choice:hover {
+  background: var(--m-bg);
+  filter: brightness(0.97);
+}
+
+/* Segmented control */
+.ha-segmented {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--ha-surface-2);
+}
+
+.ha-segmented__item {
+  height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ha-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ha-segmented__item[aria-pressed='true'] {
+  background: var(--ha-surface);
+  color: var(--ha-text);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+}
+
+.ha-segmented__item--link:hover {
+  color: var(--ha-text);
+}
+
+/* Array stage */
+.ha-stage {
+  --ha-cell: 64px;
+  --ha-gap: 10px;
+  position: relative;
+  width: calc(var(--n) * (var(--ha-cell) + var(--ha-gap)) - var(--ha-gap));
+  margin: 0 auto;
+  font-family: var(--ha-font-mono);
+}
+
+.ha-stage--sm { --ha-cell: 46px; --ha-gap: 6px; }
+.ha-stage--lg { --ha-cell: 72px; --ha-gap: 12px; }
+
+.ha-stage--fluid-lg { --ha-cell: 72px; --ha-gap: 12px; }
+
+@media (max-width: 640px) {
+  .ha-stage--fluid,
+  .ha-stage--fluid-lg { --ha-cell: 46px; --ha-gap: 6px; }
+}
+
+.ha-stage__row {
+  position: relative;
+  height: 22px;
+}
+
+.ha-stage__row > span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--ha-cell);
+  text-align: center;
+  font-size: 12px;
+  transform: translateX(calc(var(--i) * (var(--ha-cell) + var(--ha-gap))));
+  transition: transform 0.35s cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+
+.ha-stage__pointer {
+  color: var(--ha-accent);
+  font-weight: 600;
+  font-size: 13px !important;
+  white-space: nowrap;
+}
+
+.ha-stage__indices > span {
+  color: var(--ha-muted);
+  top: 4px;
+}
+
+.ha-stage__items {
+  position: relative;
+  height: var(--ha-cell);
+}
+
+.ha-item {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: var(--ha-cell);
+  height: var(--ha-cell);
+  transform: translateX(calc(var(--i) * (var(--ha-cell) + var(--ha-gap))));
+  box-sizing: border-box;
+  border-radius: 10px;
+  border: 2px var(--m-style, solid) var(--m-line);
+  background: var(--m-bg);
+  color: var(--m-fg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(var(--ha-cell) * 0.38);
+  font-weight: 500;
+  transition:
+    transform 0.35s cubic-bezier(0.3, 0.7, 0.3, 1),
+    height 0.35s ease,
+    background-color 0.2s,
+    border-color 0.2s;
+}
+
+.ha-stage--bars .ha-item {
+  border: 0;
+  background: transparent;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+.ha-item__value {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ha-text);
+  height: 22px;
+  line-height: 22px;
+}
+
+.ha-item__bar {
+  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 10px 10px 4px 4px;
+  background: var(--m-bg);
+  border: 2px var(--m-style, solid) var(--m-line);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ha-item,
+  .ha-stage__row > span {
+    transition: none;
+  }
+}
+
+/* Code */
+.ha-code {
+  margin: 0;
+  padding: 10px 0;
+  font-family: var(--ha-font-mono);
+  font-size: 13px;
+  line-height: 1.85;
+  overflow-x: auto;
+  background: transparent;
+  color: var(--ha-text);
+}
+
+.ha-code__line {
+  display: block;
+  white-space: pre;
+  padding-right: 16px;
+}
+
+.ha-code__line.is-active {
+  background: var(--ha-hl);
+  box-shadow: inset 3px 0 0 var(--ha-accent);
+}
+
+.ha-code__no {
+  display: inline-block;
+  width: 36px;
+  padding-right: 12px;
+  text-align: right;
+  color: var(--ha-muted);
+  user-select: none;
+}
+
+.ha-codeline {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
+  font-family: var(--ha-font-mono);
+  font-size: 13px;
+}
+
+.ha-codeline__no {
+  flex: none;
+  color: var(--ha-muted);
+  font-size: 12px;
+}
+
+.ha-codeline__code {
+  white-space: pre;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: transparent;
+  padding: 0;
+  border: 0;
+  color: var(--ha-text);
+}
+
+.ha-select select {
+  height: 30px;
+  border: 1px solid var(--ha-border);
+  border-radius: 8px;
+  background: var(--ha-surface);
+  color: var(--ha-text);
+  font-family: var(--ha-font-mono);
+  font-size: 12px;
+  padding: 0 6px;
+}
+
+/* Timeline */
+.ha-timeline {
+  flex: 1 1 220px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 0 6px;
+}
+
+.ha-timeline__ticks {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 22px;
+}
+
+.ha-tick {
+  flex: 1;
+  border-radius: 2px;
+  background: var(--ha-muted);
+}
+
+.ha-tick--cmp { background: var(--ha-cmp-line); }
+.ha-tick--swp { background: var(--ha-swp-line); }
+.ha-tick--done { background: var(--ha-done-line); }
+.ha-tick.is-future { opacity: 0.3; }
+.ha-tick.is-current { outline: 2px solid var(--ha-text); outline-offset: 1px; }
+
+.ha-timeline__range {
+  width: 100%;
+  accent-color: var(--ha-accent);
+}
+
+.ha-transport {
+  display: flex;
+  gap: 6px;
+}
+
+/* Compact player */
+.ha-player {
+  margin: 24px 0 8px;
+}
+
+.ha-player__frame {
+  border: 1px solid var(--ha-border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--ha-surface);
+  color: var(--ha-text);
+}
+
+.ha-player__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 16px;
+  border-bottom: 1px solid var(--ha-border);
+}
+
+.ha-player__call {
+  font-family: var(--ha-font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  margin-right: auto;
+}
+
+.ha-player__stage {
+  padding: 24px 12px 16px;
+  overflow-x: auto;
+}
+
+.ha-player__codeline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 6px 12px 6px 16px;
+  background: var(--ha-hl);
+  border-top: 1px solid var(--ha-border);
+}
+
+.ha-player__narration {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding: 12px 16px;
+  /* Room for two lines (padding + border included), so the player keeps its height while stepping. */
+  min-height: calc(3em + 25px);
+  box-sizing: border-box;
+  border-top: 1px solid var(--ha-border);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.ha-player__step {
+  flex: none;
+  font-family: var(--ha-font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ha-accent);
+}
+
+.ha-player__ask {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--ha-border);
+  background: var(--ha-soft);
+  color: var(--ha-on-soft);
+}
+
+.ha-player__ask-label {
+  font-weight: 500;
+  margin-right: auto;
+}
+
+.ha-player__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--ha-border);
+}
+
+.ha-feedback {
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--m-bg);
+  color: var(--m-fg);
+  flex-basis: 100%;
+  order: 3;
+}
+
+.ha-player__score {
+  font-family: var(--ha-font-mono);
+  font-size: 13px;
+  color: var(--ha-muted);
+}
+
+.ha-player__caption {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--ha-muted);
+}
+
+/* Explore workbench */
+.ha-workbench {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  background: var(--ha-bg);
+  color: var(--ha-text);
+  font-family: var(--ha-font-sans);
+}
+
+.ha-workbench__header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--ha-border);
+  background: var(--ha-surface);
+}
+
+.ha-workbench__title {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.ha-workbench__title span {
+  font-family: var(--ha-font-mono);
+  font-size: 12px;
+  color: var(--ha-muted);
+}
+
+.ha-workbench__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-wrap: wrap;
+  overflow: auto;
+  outline: none;
+}
+
+.ha-workbench__main {
+  flex: 999 1 560px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 20px;
+}
+
+.ha-workbench__inputs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.ha-workbench__input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--ha-font-mono);
+  font-size: 13px;
+  color: var(--ha-muted);
+}
+
+.ha-workbench__input input {
+  width: 220px;
+  height: 40px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--ha-border);
+  background: var(--ha-surface);
+  color: var(--ha-text);
+  font: inherit;
+}
+
+.ha-workbench__input input[aria-invalid='true'] {
+  border-color: var(--ha-swp-line);
+}
+
+.ha-workbench__views {
+  margin-left: auto;
+}
+
+.ha-workbench__error {
+  min-height: 20px;
+  font-size: 13px;
+  color: var(--ha-on-swp);
+}
+
+.ha-workbench__stage {
+  flex: 1;
+  min-height: 320px;
+  border: 1px solid var(--ha-border);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-x: auto;
+}
+
+.ha-workbench__narration {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding: 12px 2px 0;
+  font-size: 17px;
+  line-height: 1.5;
+  /* Two lines reserved so the stage above does not resize while stepping. */
+  min-height: calc(3em + 12px);
+  box-sizing: border-box;
+}
+
+.ha-kind {
+  flex: none;
+  font-family: var(--ha-font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--m-bg);
+  color: var(--m-fg);
+  border: 1px solid var(--m-line);
+}
+
+.ha-workbench__side {
+  flex: 1 1 360px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--ha-border);
+  background: var(--ha-surface-2);
+}
+
+.ha-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 8px 8px 0;
+  border-bottom: 1px solid var(--ha-border);
+}
+
+.ha-tabs__tab {
+  height: 38px;
+  padding: 0 12px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--ha-muted);
+  font-family: var(--ha-font-mono);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.ha-tabs__tab[aria-selected='true'] {
+  color: var(--ha-text);
+  border-bottom-color: var(--ha-accent);
+}
+
+.ha-stats {
+  margin-top: auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid var(--ha-border);
+}
+
+.ha-stat {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--ha-border);
+  background: var(--ha-surface);
+}
+
+.ha-stat__label {
+  font-size: 12px;
+  color: var(--ha-muted);
+}
+
+.ha-stat__value {
+  font-family: var(--ha-font-mono);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.ha-workbench__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--ha-border);
+  background: var(--ha-surface);
+}
+
+.ha-film {
+  flex: 1 1 360px;
+  min-width: 0;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 3px;
+}
+
+.ha-film__frame {
+  flex: 0 0 58px;
+  height: 52px;
+  box-sizing: border-box;
+  padding: 5px 5px 3px;
+  border-radius: 8px;
+  border: 1px solid var(--ha-border);
+  background: var(--ha-surface-2);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  cursor: pointer;
+}
+
+.ha-film__frame.is-current {
+  border: 2px solid var(--ha-accent);
+}
+
+.ha-film__bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 28px;
+  width: 100%;
+}
+
+.ha-film__bar {
+  flex: 1;
+  border-radius: 2px;
+  background: var(--ha-cell-line);
+}
+
+.ha-tone--cmp { background: var(--ha-cmp-line); }
+.ha-tone--swp { background: var(--ha-swp-line); }
+.ha-tone--done { background: var(--ha-done-line); }
+
+.ha-film__no {
+  font-family: var(--ha-font-mono);
+  font-size: 11px;
+  color: var(--ha-muted);
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  /* Narrow screens wrap explanations onto a third line. */
+  .ha-player__narration {
+    min-height: calc(4.5em + 25px);
+  }
+
+  .ha-player__stage {
+    padding: 20px 6px 12px;
+  }
+
+  .ha-player__call {
+    flex-basis: 100%;
+  }
+
+  .ha-player__bar .ha-segmented {
+    flex: 1;
+  }
+
+  .ha-player__bar .ha-segmented__item {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .ha-workbench__side {
+    border-left: 0;
+    border-top: 1px solid var(--ha-border);
+  }
+
+  .ha-workbench__views {
+    margin-left: 0;
+  }
+
+  .ha-workbench__stage {
+    min-height: 220px;
+    padding: 16px 4px;
+  }
+
+  /* The filmstrip needs width; phones step with the transport buttons. */
+  .ha-film {
+    display: none;
+  }
+}
+
+/* Language tabs emitted for the book's code snippets */
+.ha-codetabs {
+  margin: 16px 0 24px;
+  border: 1px solid var(--ha-border);
+  border-radius: 12px;
+  background: var(--ha-surface-2);
+  overflow: hidden;
+}
+
+.ha-codetabs__tabs {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.ha-codetabs__tabs .ha-tabs__tab {
+  flex: none;
+}
+
+.ha-codetabs__panel > div,
+.ha-codetabs__panel .rp-codeblock {
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Step-by-step figures (the book's PNG sequences) */
+.ha-steps {
+  margin: 24px 0 8px;
+  border: 1px solid var(--ha-border);
+  border-radius: 14px;
+  background: var(--ha-surface);
+  overflow: hidden;
+}
+
+.ha-steps:focus-visible {
+  outline: 2px solid var(--ha-accent);
+  outline-offset: 2px;
+}
+
+.ha-steps__frames {
+  background: #ffffff;
+}
+
+.ha-steps__frame p {
+  margin: 0;
+}
+
+.ha-steps__frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.ha-steps__frame[hidden] {
+  display: none;
+}
+
+.ha-steps__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--ha-border);
+}
+
+.ha-steps__dots {
+  flex: 1 1 160px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.ha-steps__dot {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+}
+
+.ha-steps__dot::after {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: var(--ha-border);
+}
+
+.ha-steps__dot.is-current::after {
+  inset: 5px;
+  background: var(--ha-accent);
+}
+
+.ha-steps__count {
+  font-family: var(--ha-font-mono);
+  font-size: 13px;
+  color: var(--ha-muted);
+}

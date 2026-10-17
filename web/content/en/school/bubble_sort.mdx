@@ -1,0 +1,20 @@
+---
+title: Bubble sort · School
+pageType: blank
+---
+
+import { SchoolPlayer } from '@viz/school/SchoolPlayer';
+import { bubbleSort } from '@viz/algorithms/bubbleSort';
+
+<SchoolPlayer
+  spec={bubbleSort}
+  title="Bubble sort"
+  level={3}
+  levelNote="Put the bubbles in order!"
+  grownUpHref="/chapter_sorting/bubble_sort"
+  rules={['Look at two neighbours.', 'If the left one is bigger, swap!', 'The biggest floats to the end.']}
+  peekCode={`for i in range(n - 1, 0, -1):
+    for j in range(i):
+        if nums[j] > nums[j + 1]:
+            swap(j, j + 1)`}
+/>
