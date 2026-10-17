@@ -403,7 +403,8 @@
   gap: 12px;
   align-items: baseline;
   padding: 12px 16px;
-  min-height: 52px;
+  /* Room for two lines (padding + border included), so the player keeps its height while stepping. */
+  min-height: calc(3em + 25px);
   box-sizing: border-box;
   border-top: 1px solid var(--ha-border);
   font-size: 16px;
@@ -576,6 +577,10 @@
   align-items: baseline;
   padding: 12px 2px 0;
   font-size: 17px;
+  line-height: 1.5;
+  /* Two lines reserved so the stage above does not resize while stepping. */
+  min-height: calc(3em + 12px);
+  box-sizing: border-box;
 }
 
 .ha-kind {
@@ -715,6 +720,11 @@
 }
 
 @media (max-width: 640px) {
+  /* Narrow screens wrap explanations onto a third line. */
+  .ha-player__narration {
+    min-height: calc(4.5em + 25px);
+  }
+
   .ha-player__stage {
     padding: 20px 6px 12px;
   }

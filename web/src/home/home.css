@@ -9,7 +9,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 48px;
-  align-items: center;
+  /* Top-aligned: centering would move the demo whenever its height changes. */
+  align-items: flex-start;
 }
 
 .ha-home__intro {
