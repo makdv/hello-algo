@@ -3,18 +3,12 @@ import { createPortal } from 'react-dom';
 import { useCodeLang } from '../engine/useCodeLang';
 import { SPEEDS, usePlayer } from '../engine/usePlayer';
 import type { AlgorithmSpec, ArrayFrame, LangId } from '../engine/types';
+import { pick } from '../i18n/locale';
+import { useLocale } from '../i18n/useLocale';
+import { ui } from '../i18n/ui';
 import { ArrayStage } from './ArrayStage';
 import { CodeView } from './CodeView';
 import { playerKeyHandler, Transport } from './Controls';
-
-const KIND_LABEL: Record<string, [tone: string, label: string]> = {
-  init: ['idle', 'start'],
-  pass: ['idle', 'pass'],
-  cmp: ['cmp', 'compare'],
-  swp: ['swp', 'swap'],
-  fixed: ['done', 'fixed'],
-  end: ['done', 'done'],
-};
 
 const MAX_LEN = 10;
 
@@ -30,34 +24,41 @@ function parseInput(text: string): number[] | null {
 
 const randomInput = () => Array.from({ length: 7 }, () => 1 + Math.floor(Math.random() * 20));
 
-const PRESETS: [name: string, make: () => number[]][] = [
-  ['Random', randomInput],
-  ['Sorted', () => [1, 2, 3, 4, 5, 6, 7]],
-  ['Reversed', () => [7, 6, 5, 4, 3, 2, 1]],
-  ['Few unique', () => [2, 1, 2, 1, 2, 1, 2]],
+const PRESETS: [key: 'random' | 'sorted' | 'reversed' | 'fewUnique', make: () => number[]][] = [
+  ['random', randomInput],
+  ['sorted', () => [1, 2, 3, 4, 5, 6, 7]],
+  ['reversed', () => [7, 6, 5, 4, 3, 2, 1]],
+  ['fewUnique', () => [2, 1, 2, 1, 2, 1, 2]],
 ];
 
 interface Props<F extends ArrayFrame> {
   spec: AlgorithmSpec<F>;
   input: number[];
+  param?: number;
   startAt: number;
   onClose(): void;
 }
 
 /** Explore mode: a full-screen workbench with custom input, both drawings, code, stats and a filmstrip. */
-export function Workbench<F extends ArrayFrame>({ spec, input, startAt, onClose }: Props<F>) {
+export function Workbench<F extends ArrayFrame>({ spec, input, param, startAt, onClose }: Props<F>) {
+  const locale = useLocale();
+  const t = ui(locale);
   const [values, setValues] = useState(input);
+  const [paramValue, setParamValue] = useState(param);
   const [text, setText] = useState(input.join(', '));
+  const [paramText, setParamText] = useState(param === undefined ? '' : String(param));
   const [error, setError] = useState('');
   const [view, setView] = useState<'cells' | 'bars'>('cells');
-  const frames = useMemo(() => spec.trace(values), [spec, values]);
+  const frames = useMemo(() => spec.trace(values, paramValue), [spec, values, paramValue]);
   const player = usePlayer(frames, startAt);
-  const langs = Object.keys(spec.sources) as LangId[];
+  const sources = spec.sources(locale);
+  const langs = Object.keys(sources) as LangId[];
   const [lang, setLang] = useCodeLang(langs);
   const closeRef = useRef<HTMLButtonElement>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   const frame = player.frame;
+  const title = pick(spec.title, locale);
 
   // Runs once per opening: trap the page scroll, focus the dialog, restore focus on close.
   useEffect(() => {
@@ -76,48 +77,50 @@ export function Workbench<F extends ArrayFrame>({ spec, input, startAt, onClose 
     };
   }, []);
 
-  const load = (next: number[]) => {
+  const load = (next: number[], nextParam = paramValue) => {
     setValues(next);
+    setParamValue(nextParam);
     setText(next.join(', '));
     setError('');
   };
 
   const run = () => {
     const parsed = parseInput(text);
-    if (!parsed) {
-      setError(`Enter 2 to ${MAX_LEN} whole numbers from 0 to 99, separated by commas.`);
+    const p = spec.param ? Number(paramText) : undefined;
+    if (!parsed || (spec.param && (!Number.isInteger(p) || p! < 0 || p! > 99))) {
+      setError(t.inputError(MAX_LEN));
       return;
     }
-    load(parsed);
+    load(parsed, p);
   };
 
   const lo = Math.max(0, Math.min(player.cur - 5, frames.length - 11));
   const film = frames.slice(lo, lo + 11);
-  const [tone, label] = KIND_LABEL[frame.kind] ?? ['idle', frame.kind];
-  const source = spec.sources[lang] ?? spec.sources[langs[0]]!;
+  const tone = spec.tones[frame.kind] ?? 'idle';
+  const source = sources[lang] ?? sources[langs[0]]!;
 
   const stats: [string, string | number][] = [
-    ...frame.vars.filter(([k]) => k === 'i' || k === 'j').map(([k, v]) => [k, v ?? '–'] as [string, string | number]),
-    ...Object.entries(frame.stats),
+    ...frame.vars.filter(([k]) => ['i', 'j', 'k', 'm'].includes(k)).map(([k, v]) => [k, v ?? '–'] as [string, string | number]),
+    ...Object.entries(frame.stats).map(([k, v]) => [t.stats[k] ?? k, v] as [string, string | number]),
   ];
 
   return createPortal(
-    <div className="ha-workbench" role="dialog" aria-modal="true" aria-label={`Explore ${spec.title}`}>
+    <div className="ha-workbench" role="dialog" aria-modal="true" aria-label={`${t.explore}: ${title}`}>
       <header className="ha-workbench__header">
         <button ref={closeRef} type="button" className="ha-btn ha-workbench__close" onClick={onClose}>
           <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 6l-6 6 6 6" />
           </svg>
-          Back to the book
+          {t.backToBook}
         </button>
         <div className="ha-workbench__title">
-          <strong>{spec.title}</strong>
-          <span>explore mode</span>
+          <strong>{title}</strong>
+          <span>{t.exploreMode}</span>
         </div>
       </header>
 
       <div className="ha-workbench__body" tabIndex={-1} onKeyDown={playerKeyHandler(player)}>
-        <section className="ha-workbench__main" aria-label="Stage">
+        <section className="ha-workbench__main" aria-label={title}>
           <div className="ha-workbench__inputs">
             <label className="ha-workbench__input">
               <span>nums =</span>
@@ -134,18 +137,36 @@ export function Workbench<F extends ArrayFrame>({ spec, input, startAt, onClose 
                 }}
               />
             </label>
+            {spec.param && (
+              <label className="ha-workbench__input ha-workbench__input--param">
+                <span>{pick(spec.param.label, locale)} =</span>
+                <input
+                  value={paramText}
+                  inputMode="numeric"
+                  aria-invalid={Boolean(error)}
+                  aria-describedby="ha-workbench-error"
+                  onChange={(e) => {
+                    setParamText(e.target.value);
+                    setError('');
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') run();
+                  }}
+                />
+              </label>
+            )}
             <button type="button" className="ha-btn ha-btn--primary" onClick={run}>
-              Run
+              {t.run}
             </button>
-            {PRESETS.map(([name, make]) => (
-              <button key={name} type="button" className="ha-btn" onClick={() => load(make())}>
-                {name}
+            {PRESETS.map(([key, make]) => (
+              <button key={key} type="button" className="ha-btn" onClick={() => load(make())}>
+                {t.presets[key]}
               </button>
             ))}
-            <div className="ha-segmented ha-workbench__views" role="group" aria-label="Drawing">
+            <div className="ha-segmented ha-workbench__views" role="group" aria-label={t.drawing}>
               {(['cells', 'bars'] as const).map((v) => (
                 <button key={v} type="button" aria-pressed={view === v} className="ha-segmented__item" onClick={() => setView(v)}>
-                  {v === 'cells' ? 'Cells' : 'Bars'}
+                  {v === 'cells' ? t.cells : t.bars}
                 </button>
               ))}
             </div>
@@ -159,16 +180,16 @@ export function Workbench<F extends ArrayFrame>({ spec, input, startAt, onClose 
           </div>
 
           <div className="ha-workbench__narration" aria-live="polite">
-            <span className={`ha-kind ha-mark--${tone}`}>{label}</span>
-            <span>{spec.narrate(frame, 'reader')}</span>
+            <span className={`ha-kind ha-mark--${tone}`}>{t.kinds[frame.kind] ?? frame.kind}</span>
+            <span>{spec.narrate(frame, 'reader', locale)}</span>
           </div>
         </section>
 
-        <aside className="ha-workbench__side" aria-label="Code and state">
-          <div className="ha-tabs" role="tablist" aria-label="Code language">
+        <aside className="ha-workbench__side" aria-label={t.codeLanguage}>
+          <div className="ha-tabs" role="tablist" aria-label={t.codeLanguage}>
             {langs.map((l) => (
               <button key={l} type="button" role="tab" aria-selected={lang === l} className="ha-tabs__tab" onClick={() => setLang(l)}>
-                {spec.sources[l]!.label}
+                {sources[l]!.label}
               </button>
             ))}
           </div>
@@ -185,15 +206,15 @@ export function Workbench<F extends ArrayFrame>({ spec, input, startAt, onClose 
       </div>
 
       <footer className="ha-workbench__footer">
-        <Transport player={player} showRestart />
-        <div className="ha-segmented" role="group" aria-label="Speed">
+        <Transport player={player} t={t} showRestart />
+        <div className="ha-segmented" role="group" aria-label={t.speed}>
           {SPEEDS.map((s) => (
             <button key={s} type="button" aria-pressed={player.speed === s} className="ha-segmented__item ha-mono" onClick={() => player.setSpeed(s)}>
               {s}×
             </button>
           ))}
         </div>
-        <div className="ha-film" aria-label="Steps">
+        <div className="ha-film" aria-label={t.steps}>
           {film.map((f, k) => {
             const idx = lo + k;
             const max = Math.max(1, ...f.items.map((it) => it.value));
@@ -202,7 +223,7 @@ export function Workbench<F extends ArrayFrame>({ spec, input, startAt, onClose 
                 key={idx}
                 type="button"
                 className={`ha-film__frame${idx === player.cur ? ' is-current' : ''}`}
-                aria-label={`Go to step ${idx + 1}`}
+                aria-label={t.stepAria(idx + 1)}
                 aria-current={idx === player.cur ? 'step' : undefined}
                 onClick={() => player.go(idx)}
               >

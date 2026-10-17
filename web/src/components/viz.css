@@ -151,11 +151,27 @@
 .ha-stage--sm { --ha-cell: 46px; --ha-gap: 6px; }
 .ha-stage--lg { --ha-cell: 72px; --ha-gap: 12px; }
 
-.ha-stage--fluid-lg { --ha-cell: 72px; --ha-gap: 12px; }
+/* Fluid sizes fill the stage's width: n cells and n - 1 gaps, clamped to a readable range. */
+.ha-player__stage,
+.ha-workbench__stage {
+  container-type: inline-size;
+}
+
+.ha-stage--fluid {
+  --ha-gap: 10px;
+  --ha-cell: clamp(26px, calc((100cqw - (var(--n) - 1) * var(--ha-gap)) / var(--n)), 64px);
+}
+
+.ha-stage--fluid-lg {
+  --ha-gap: 12px;
+  --ha-cell: clamp(26px, calc((100cqw - (var(--n) - 1) * var(--ha-gap)) / var(--n)), 72px);
+}
 
 @media (max-width: 640px) {
   .ha-stage--fluid,
-  .ha-stage--fluid-lg { --ha-cell: 46px; --ha-gap: 6px; }
+  .ha-stage--fluid-lg {
+    --ha-gap: 5px;
+  }
 }
 
 .ha-stage__row {
@@ -212,7 +228,8 @@
     transform 0.35s cubic-bezier(0.3, 0.7, 0.3, 1),
     height 0.35s ease,
     background-color 0.2s,
-    border-color 0.2s;
+    border-color 0.2s,
+    opacity 0.25s;
 }
 
 .ha-stage--bars .ha-item {
@@ -238,6 +255,12 @@
   border-radius: 10px 10px 4px 4px;
   background: var(--m-bg);
   border: 2px var(--m-style, solid) var(--m-line);
+}
+
+/* Outside the active range: faded, so the eye stays on the part being worked on. */
+.ha-item.is-out,
+.ha-stage__indices > span.is-out {
+  opacity: 0.3;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -543,6 +566,10 @@
   background: var(--ha-surface);
   color: var(--ha-text);
   font: inherit;
+}
+
+.ha-workbench__input--param input {
+  width: 64px;
 }
 
 .ha-workbench__input input[aria-invalid='true'] {
@@ -864,4 +891,20 @@
   font-family: var(--ha-font-mono);
   font-size: 13px;
   color: var(--ha-muted);
+}
+
+/* Same footprint as a loaded player, so the page does not jump when it arrives. */
+.ha-player__placeholder {
+  height: 391px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ha-muted);
+  font-size: 14px;
+}
+
+@media (max-width: 640px) {
+  .ha-player__placeholder {
+    height: 470px;
+  }
 }

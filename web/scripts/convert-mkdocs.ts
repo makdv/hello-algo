@@ -22,6 +22,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { LOCALES, type LocaleInfo, localePrefix } from './locales.ts';
 import { readNav, routeOf } from './nav.ts';
+import { PLAYER_PLACEMENTS, SCHOOL_LEVELS } from './players.ts';
 
 const webDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repoDir = path.resolve(webDir, '..');
@@ -43,6 +44,8 @@ const ADMONITION_TYPE: Record<string, string> = {
 
 interface Context {
   locale: LocaleInfo;
+  /** Page path relative to the docs dir, e.g. `chapter_sorting/bubble_sort.md`. */
+  page: string;
   chapterNumber: number | null;
   /** Shared per chapter so table numbers continue across its pages. */
   tables: { count: number };
@@ -90,7 +93,18 @@ function convertLine(line: string, ctx: Context): string {
   return escapeProse(out);
 }
 
-function convertBlock(lines: string[], ctx: Context): string[] {
+/** If this figure is replaced by an interactive player, returns the marker the remark plugin expands. */
+function playerMarker(ctx: Context, imageLine: string): string | null {
+  const m = imageLine.match(/!\[([^\]]*)\]\(([^)\s]+)/);
+  if (!m) return null;
+  const file = m[2].split('/').pop();
+  const placement = PLAYER_PLACEMENTS.find((p) => p.page === ctx.page && p.image === file);
+  if (!placement) return null;
+  const caption = m[1].replace(/-->/g, '').trim();
+  return `<!-- ha:player ${placement.algorithm} :: ${caption} -->`;
+}
+
+function convertBlock(lines: string[], ctx: Context, inTab = false): string[] {
   const out: string[] = [];
   let i = 0;
   while (i < lines.length) {
@@ -109,12 +123,12 @@ function convertBlock(lines: string[], ctx: Context): string[] {
 
     // Tab group: === "Label"
     if (/^=== "(.*)"\s*$/.test(line)) {
-      const items: { label: string; body: string[] }[] = [];
+      const items: { label: string; body: string[]; raw: string[] }[] = [];
       while (i < lines.length) {
         const m = lines[i].match(/^=== "(.*)"\s*$/);
         if (!m) break;
         const [body, next] = takeIndented(lines, i + 1);
-        items.push({ label: m[1], body: convertBlock(body, ctx) });
+        items.push({ label: m[1], raw: body, body: convertBlock(body, ctx, true) });
         i = next;
         let k = i;
         while (k < lines.length && !lines[k].trim()) k++;
@@ -122,7 +136,11 @@ function convertBlock(lines: string[], ctx: Context): string[] {
         else break;
       }
       const steps = items.every((it) => /^<\d+>$/.test(it.label));
-      if (steps) {
+      const firstImage = items[0]?.raw.find((l) => /!\[/.test(l));
+      const marker = steps && firstImage ? playerMarker(ctx, firstImage) : null;
+      if (marker) {
+        out.push(marker, '');
+      } else if (steps) {
         out.push('<!-- ha:steps -->', '');
         for (const it of items) out.push(...it.body, '');
         out.push('<!-- /ha:steps -->', '');
@@ -167,7 +185,9 @@ function convertBlock(lines: string[], ctx: Context): string[] {
       continue;
     }
 
-    out.push(convertLine(line, ctx));
+    // A standalone figure with an interactive replacement (not a frame inside a step sequence).
+    const single = !inTab && /^!\[/.test(line) ? playerMarker(ctx, line) : null;
+    out.push(single ?? convertLine(line, ctx));
     i++;
   }
   return out;
@@ -235,6 +255,29 @@ import { Home } from '@viz/home/Home';
 `;
 }
 
+/** The School view for a locale: a hub page plus one page per level. */
+function writeSchool(locale: LocaleInfo, outDocs: string) {
+  const dir = path.join(outDocs, 'school');
+  fs.mkdirSync(dir, { recursive: true });
+  const page = (title: string, body: string) => `---
+title: ${title}
+pageType: blank
+---
+
+${body}
+`;
+  fs.writeFileSync(
+    path.join(dir, 'index.mdx'),
+    page('School', `import { SchoolHub } from '@viz/school/SchoolHub';\n\n<SchoolHub locale="${locale.lang}" />`),
+  );
+  for (const id of SCHOOL_LEVELS) {
+    fs.writeFileSync(
+      path.join(dir, `${id}.mdx`),
+      page('School', `import { SchoolLevel } from '@viz/school/SchoolLevel';\n\n<SchoolLevel locale="${locale.lang}" algorithm="${id}" />`),
+    );
+  }
+}
+
 function convertLocale(locale: LocaleInfo) {
   const srcDocs = path.join(repoDir, locale.source, 'docs');
   const outDocs = path.join(outRoot, locale.lang);
@@ -246,15 +289,15 @@ function convertLocale(locale: LocaleInfo) {
   const ordered: { file: string; ctx: Context }[] = [];
   const seen = new Set<string>();
   for (const chapter of nav) {
-    const ctx: Context = { locale, chapterNumber: chapter.number, tables: { count: 0 } };
+    const tables = { count: 0 };
     for (const page of chapter.pages) {
-      ordered.push({ file: page.file, ctx });
+      ordered.push({ file: page.file, ctx: { locale, page: page.file, chapterNumber: chapter.number, tables } });
       seen.add(page.file);
     }
   }
   for (const file of listMarkdown(srcDocs)) {
     if (seen.has(file) || !file.startsWith('chapter_')) continue;
-    ordered.push({ file, ctx: { locale, chapterNumber: null, tables: { count: 0 } } });
+    ordered.push({ file, ctx: { locale, page: file, chapterNumber: null, tables: { count: 0 } } });
   }
 
   let pages = 0;
@@ -280,6 +323,7 @@ function convertLocale(locale: LocaleInfo) {
   }
 
   fs.writeFileSync(path.join(outDocs, 'index.mdx'), homePage(locale, nav));
+  writeSchool(locale, outDocs);
 
   // Hand-written pages replace their generated counterparts.
   let overrides = 0;

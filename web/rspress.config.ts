@@ -96,7 +96,7 @@ export default defineConfig({
   themeConfig: {
     darkMode: true,
     socialLinks: [{ icon: 'github', mode: 'link', content: 'https://github.com/krahets/hello-algo' }],
-    locales: LOCALES.map(({ lang, label, source, bookNav }) => {
+    locales: LOCALES.map(({ lang, label, source, bookNav, schoolNav }) => {
       const prefix = localePrefix(lang);
       const start = readNav(path.join(repoDir, source, 'mkdocs.yml')).find((c) => c.pages.length)?.pages[0];
       return {
@@ -104,20 +104,14 @@ export default defineConfig({
         label,
         nav: [
           { text: bookNav, link: start ? routeOf(start.file, prefix) : `${prefix}/` },
-          // The interactive pages are English-only for now.
-          ...(lang === DEFAULT_LOCALE
-            ? [
-                { text: 'Bubble sort demo', link: '/chapter_sorting/bubble_sort' },
-                { text: 'School', link: '/school/bubble_sort' },
-              ]
-            : []),
+          { text: schoolNav, link: `${prefix}/school/` },
         ],
         sidebar: { [`${prefix}/`]: bookSidebar(source, prefix) },
       };
     }),
   },
   markdown: {
-    globalComponents: ['CodeTabs', 'CodeTab', 'StepFrames'].map((c) => path.join(__dirname, `src/mdx/${c}.tsx`)),
+    globalComponents: ['CodeTabs', 'CodeTab', 'StepFrames', 'AlgoFigure'].map((c) => path.join(__dirname, `src/mdx/${c}.tsx`)),
     remarkPlugins: [
       remarkMath,
       [
@@ -140,7 +134,7 @@ export default defineConfig({
     resolve: {
       alias: {
         '@viz': path.join(__dirname, 'src'),
-        '@codes': path.join(__dirname, '../en/codes'),
+        ...Object.fromEntries(LOCALES.map((l) => [`@codes-${l.lang}`, path.join(repoDir, l.source, 'codes')])),
       },
     },
   },

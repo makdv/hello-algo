@@ -255,3 +255,27 @@ kbd {
   margin: 8px auto 24px;
   border-radius: 14px;
 }
+
+/*
+ * The book's figures are PNGs drawn on white. In dark palettes they become light,
+ * slightly dimmed cards instead of glaring rectangles. Covers and step figures
+ * (which already sit on their own white panel) are left as they are.
+ */
+html.rp-dark .rp-doc p > img {
+  background: #ffffff;
+  padding: 10px;
+  border-radius: 12px;
+  box-sizing: border-box;
+  filter: brightness(0.9);
+}
+
+html.rp-dark .rp-doc .ha-cover img,
+html.rp-dark .rp-doc .ha-steps img {
+  background: none;
+  padding: 0;
+  filter: none;
+}
+
+html.rp-dark .rp-doc .ha-steps__frames {
+  filter: brightness(0.9);
+}

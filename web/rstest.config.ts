@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from '@rstest/core';
+import { LOCALES } from './scripts/locales.ts';
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -10,7 +11,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@viz': path.join(dir, 'src'),
-      '@codes': path.join(dir, '../en/codes'),
+      ...Object.fromEntries(LOCALES.map((l) => [`@codes-${l.lang}`, path.join(dir, '..', l.source, 'codes')])),
     },
   },
   tools: {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { Locale } from '../i18n/locale';
 import type { AlgorithmSpec, ArrayFrame, Question, Voice } from './types';
 import type { Player } from './usePlayer';
 
@@ -19,6 +20,7 @@ export function usePredict<F extends ArrayFrame>(
   player: Player<F>,
   enabled: boolean,
   voice: Voice,
+  locale: Locale,
 ): Predict {
   const [result, setResult] = useState<Predict['result']>(null);
   const [right, setRight] = useState(0);
@@ -26,7 +28,7 @@ export function usePredict<F extends ArrayFrame>(
 
   useEffect(() => setResult(null), [player.cur, player.frames, enabled]);
 
-  const question = enabled ? (spec.predict?.(player.frame, voice) ?? null) : null;
+  const question = enabled ? (spec.predict?.(player.frame, voice, locale) ?? null) : null;
 
   return {
     question,
