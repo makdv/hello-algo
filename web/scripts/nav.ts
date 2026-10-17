@@ -9,10 +9,12 @@ export interface NavPage {
 
 export interface NavChapter {
   title: string;
-  /** Number from "Chapter 11. Sorting", or null for unnumbered sections. */
+  /** Number from "Chapter 11. Sorting", "第 11 章", "Глава 11."; null for unnumbered sections. */
   number: number | null;
   pages: NavPage[];
 }
+
+const cleanTitle = (t: string) => t.replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
 
 /** Reads the `nav:` tree of a hello-algo mkdocs.yml (two levels: chapter → pages). */
 export function readNav(mkdocsPath: string): NavChapter[] {
@@ -24,8 +26,8 @@ export function readNav(mkdocsPath: string): NavChapter[] {
     if (/^\S/.test(line)) break;
     const chapter = line.match(/^  - (.+):\s*$/);
     if (chapter) {
-      const title = chapter[1].trim();
-      const number = title.match(/^Chapter (\d+)\./)?.[1];
+      const title = cleanTitle(chapter[1]);
+      const number = title.match(/(\d+)/)?.[1];
       chapters.push({ title, number: number === undefined ? null : Number(number), pages: [] });
       continue;
     }
@@ -33,13 +35,13 @@ export function readNav(mkdocsPath: string): NavChapter[] {
     const bare = line.match(/^    - (\S+\.md)\s*$/);
     const current = chapters[chapters.length - 1];
     if (!current) continue;
-    if (titled) current.pages.push({ title: titled[1].trim(), file: titled[2] });
+    if (titled) current.pages.push({ title: cleanTitle(titled[1]), file: titled[2] });
     else if (bare) current.pages.push({ title: null, file: bare[1] });
   }
   return chapters;
 }
 
 /** `chapter_sorting/bubble_sort.md` → `/chapter_sorting/bubble_sort`; index pages → `/chapter_sorting/`. */
-export function routeOf(file: string): string {
-  return `/${file.replace(/(^|\/)index\.md$/, '$1').replace(/\.md$/, '')}`;
+export function routeOf(file: string, prefix = ''): string {
+  return `${prefix}/${file.replace(/(^|\/)index\.md$/, '$1').replace(/\.md$/, '')}`;
 }

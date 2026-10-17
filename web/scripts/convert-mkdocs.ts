@@ -1,11 +1,13 @@
 /**
- * Converts the MkDocs book (en/docs) into Rspress pages under web/docs.
+ * Converts the MkDocs book, in every language, into Rspress pages under web/docs/<lang>.
  *
- *   node scripts/convert-mkdocs.ts
+ *   bun scripts/convert-mkdocs.ts
  *
- * The generated chapters are not committed: en/docs stays the single source of truth,
- * and `npm run dev` / `npm run build` regenerate them first. Hand-written pages in
- * web/content (for example the interactive bubble sort page) replace generated ones.
+ * Sources: docs/ (zh), en/docs, zh-hant/docs, ja/docs, ru/docs (see locales.ts).
+ * The output is not committed: the MkDocs sources stay the single source of truth,
+ * and `bun run dev` / `bun run build` regenerate it first. Hand-written pages in
+ * web/content/<lang> (for example the interactive bubble sort page) replace generated ones,
+ * and each locale's home page is generated from its own nav.
  *
  * Handled MkDocs syntax:
  * - `=== "Python"` language tabs → code fences between `<!-- ha:codetabs -->` markers
@@ -18,15 +20,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readNav } from './nav.ts';
+import { LOCALES, type LocaleInfo, localePrefix } from './locales.ts';
+import { readNav, routeOf } from './nav.ts';
 
 const webDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repoDir = path.resolve(webDir, '..');
-const srcDocs = path.join(repoDir, 'en/docs');
-const outDocs = path.join(webDir, 'docs');
-const overridesDir = path.join(webDir, 'content');
-/** Shared asset folders that pages reference with ../ paths; regenerated with the chapters. */
-const GENERATED_ROOT_DIRS = ['assets', 'index.assets'];
+const outRoot = path.join(webDir, 'docs');
+const overridesRoot = path.join(webDir, 'content');
 
 const ADMONITION_TYPE: Record<string, string> = {
   abstract: 'info',
@@ -42,12 +42,11 @@ const ADMONITION_TYPE: Record<string, string> = {
 };
 
 interface Context {
+  locale: LocaleInfo;
   chapterNumber: number | null;
   /** Shared per chapter so table numbers continue across its pages. */
   tables: { count: number };
 }
-
-const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /** Takes the indented body that follows a `===`, `!!!` or `???` header line. */
 function takeIndented(lines: string[], from: number): [body: string[], next: number] {
@@ -149,14 +148,14 @@ function convertBlock(lines: string[], ctx: Context): string[] {
       i = next;
       if (type === 'pythontutor') {
         const url = rawBody.join(' ').match(/https?:\/\/\S+/)?.[0];
-        if (url) out.push(`[${title || 'Code visualization'}: run it step by step in Python Tutor](${url})`, '');
+        if (url) out.push(`[${title ? `${title}: ` : ''}${ctx.locale.pythonTutor}](${url})`, '');
         continue;
       }
       const body = convertBlock(rawBody, ctx);
       const deepest = Math.max(2, ...body.map((l) => l.match(/^(:{3,})/)?.[1].length ?? 0));
       const colons = ':'.repeat(deepest + 1);
       const rpType = kind.startsWith('???') ? 'details' : (ADMONITION_TYPE[type] ?? 'note');
-      const heading = title === undefined ? capitalize(type) : title;
+      const heading = title === undefined ? (ctx.locale.admonitions[type] ?? type) : title;
       out.push(`${colons}${rpType}${heading ? ` ${heading}` : ''}`, '', ...body, '', colons, '');
       continue;
     }
@@ -197,37 +196,65 @@ function copyFile(from: string, to: string) {
   fs.copyFileSync(from, to);
 }
 
-function listMarkdown(dir: string): string[] {
+function listMarkdown(dir: string, root = dir): string[] {
   const out: string[] = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...listMarkdown(p));
-    else if (entry.name.endsWith('.md')) out.push(path.relative(srcDocs, p));
+    if (entry.isDirectory()) out.push(...listMarkdown(p, root));
+    else if (entry.name.endsWith('.md')) out.push(path.relative(root, p));
   }
   return out;
 }
 
-function main() {
-  // Generated chapters are rebuilt from scratch each run.
-  for (const entry of fs.readdirSync(outDocs)) {
-    if (entry.startsWith('chapter_') || GENERATED_ROOT_DIRS.includes(entry)) {
-      fs.rmSync(path.join(outDocs, entry), { recursive: true, force: true });
-    }
-  }
+const stripChapterPrefix = (title: string) =>
+  title.replace(/^(Chapter\s+\d+\.|第\s*\d+\s*章|Глава\s+\d+\.)\s*/, '').trim();
 
-  const nav = readNav(path.join(repoDir, 'en/mkdocs.yml'));
+/** The locale's home page: the shared <Home> component fed with this locale's chapter list. */
+function homePage(locale: LocaleInfo, nav: ReturnType<typeof readNav>): string {
+  const prefix = localePrefix(locale.lang);
+  const chapters = nav
+    .filter((c) => c.number !== null)
+    .map((c) => {
+      const index = c.pages.find((p) => p.title === null);
+      return {
+        no: c.number,
+        title: stripChapterPrefix(c.title),
+        href: index ? routeOf(index.file, prefix) : routeOf(c.pages[0].file, prefix),
+        sections: c.pages.filter((p) => p.title !== null).length,
+      };
+    });
+  const start = nav.find((c) => c.number === null)?.pages[0];
+  return `---
+title: Hello Algo
+pageType: custom
+---
+
+import { Home } from '@viz/home/Home';
+
+<Home locale="${locale.lang}" startHref="${start ? routeOf(start.file, prefix) : `${prefix}/`}" chapters={${JSON.stringify(chapters)}} />
+`;
+}
+
+function convertLocale(locale: LocaleInfo) {
+  const srcDocs = path.join(repoDir, locale.source, 'docs');
+  const outDocs = path.join(outRoot, locale.lang);
+  const overridesDir = path.join(overridesRoot, locale.lang);
+  fs.rmSync(outDocs, { recursive: true, force: true });
+  fs.mkdirSync(outDocs, { recursive: true });
+
+  const nav = readNav(path.join(repoDir, locale.source, 'mkdocs.yml'));
   const ordered: { file: string; ctx: Context }[] = [];
   const seen = new Set<string>();
   for (const chapter of nav) {
-    const ctx: Context = { chapterNumber: chapter.number, tables: { count: 0 } };
+    const ctx: Context = { locale, chapterNumber: chapter.number, tables: { count: 0 } };
     for (const page of chapter.pages) {
       ordered.push({ file: page.file, ctx });
       seen.add(page.file);
     }
   }
   for (const file of listMarkdown(srcDocs)) {
-    if (seen.has(file) || file === 'index.md' || !file.startsWith('chapter_')) continue;
-    ordered.push({ file, ctx: { chapterNumber: null, tables: { count: 0 } } });
+    if (seen.has(file) || !file.startsWith('chapter_')) continue;
+    ordered.push({ file, ctx: { locale, chapterNumber: null, tables: { count: 0 } } });
   }
 
   let pages = 0;
@@ -252,6 +279,8 @@ function main() {
     }
   }
 
+  fs.writeFileSync(path.join(outDocs, 'index.mdx'), homePage(locale, nav));
+
   // Hand-written pages replace their generated counterparts.
   let overrides = 0;
   const overlay = (dir: string) => {
@@ -272,7 +301,11 @@ function main() {
   };
   overlay(overridesDir);
 
-  console.log(`[convert-mkdocs] ${pages} pages, ${assets} assets, ${overrides} hand-written overrides`);
+  console.log(`[convert-mkdocs] ${locale.lang}: ${pages} pages, ${assets} assets, ${overrides} hand-written overrides`);
+}
+
+function main() {
+  for (const locale of LOCALES) convertLocale(locale);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

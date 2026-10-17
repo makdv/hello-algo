@@ -20,6 +20,7 @@ export const SNIPPET_LANGS = [
   'c',
   'kotlin',
   'ruby',
+  'zig',
 ] as const;
 
 export type SnippetLang = (typeof SNIPPET_LANGS)[number];
@@ -38,6 +39,7 @@ export const LANG_INFO: Record<SnippetLang, { label: string; ext: string; family
   c: { label: 'C', ext: 'c', family: 'brace' },
   kotlin: { label: 'Kotlin', ext: 'kt', family: 'brace' },
   ruby: { label: 'Ruby', ext: 'rb', family: 'rb' },
+  zig: { label: 'Zig', ext: 'zig', family: 'brace' },
 };
 
 export interface SnippetRef {
@@ -215,6 +217,12 @@ function matchesClass(unit: Unit, target: string, lang: SnippetLang): boolean {
     const g = head.match(/^type\s+(\w+)\s+struct\b/);
     if (g && normalizeName(g[1]) === t) return true;
   }
+  if (lang === 'zig') {
+    // Zig types are functions returning a struct (`pub fn ArrayStack(comptime T: type) type {`)
+    // or struct constants (`const ListNode = struct {`).
+    const z = head.match(/\bfn\s+(\w+)\s*\(.*\)\s*type\s*\{/) ?? head.match(/\bconst\s+(\w+)\s*=\s*struct\b/);
+    if (z && normalizeName(z[1]) === t) return true;
+  }
   if (lang === 'c' && head.startsWith('typedef')) {
     const c = body[body.length - 1].trim().match(/}\s*(\w+)\s*;$/);
     if (c && normalizeName(c[1]) === t) return true;
@@ -229,7 +237,13 @@ function innerUnits(unit: Unit, lang: SnippetLang): Unit[] {
   // Skip closing braces and C++ access labels (`private:`), which sit at a shallower indent.
   const firstInner = body.find((l) => l.trim() && !/^[}\]]/.test(l.trim()) && !/^(public|private|protected)\s*:/.test(l.trim()));
   if (!firstInner) return [];
-  return splitUnits(body, indentOf(firstInner), family);
+  const units = splitUnits(body, indentOf(firstInner), family);
+  // Zig generic types wrap their members in `return struct { ... }`.
+  if (lang === 'zig') {
+    const wrapper = units.find((u) => /^return\s+struct\b/.test(headOf(u).trim()));
+    if (wrapper) return innerUnits(wrapper, lang);
+  }
+  return units;
 }
 
 /** Go, Rust and C keep methods outside the type declaration: gather them too. */
@@ -300,7 +314,11 @@ function findDeep(units: Unit[], pred: (u: Unit) => boolean, lang: SnippetLang):
   if (hit) return hit;
   for (const u of units) {
     const head = headOf(u).trim();
-    if (/\b(class|struct|object|impl|namespace|module|extension|enum)\b/.test(head) || /^(public|internal|static)\b.*\bclass\b/.test(head)) {
+    if (
+      /\b(class|struct|object|impl|namespace|module|extension|enum)\b/.test(head) ||
+      /^(public|internal|static)\b.*\bclass\b/.test(head) ||
+      (lang === 'zig' && /\)\s*type\s*\{/.test(head))
+    ) {
       const inner = findDeep(innerUnits(u, lang), pred, lang);
       if (inner) return inner;
     }

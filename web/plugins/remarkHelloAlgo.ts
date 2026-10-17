@@ -7,7 +7,7 @@ import { extractSnippet, LANG_INFO, parseSnippetRef, SNIPPET_LANGS, type Snippet
  * Book-specific Markdown, applied to every page at build time:
  *
  * - ```src blocks with `[file]{x}-[class]{y}-[func]{z}` become a <CodeTabs> listing,
- *   extracted from `codes/<lang>/<chapter>/x.<ext>` for every language that has it.
+ *   extracted from the page locale's `codes/<lang>/<chapter>/x.<ext>` for every language that has it.
  * - Code fences between `<!-- ha:codetabs -->` markers (the converter's output for
  *   MkDocs language tabs) become <CodeTabs>.
  * - Content between `<!-- ha:steps -->` markers (MkDocs `<1>`, `<2>` image tabs)
@@ -15,8 +15,10 @@ import { extractSnippet, LANG_INFO, parseSnippetRef, SNIPPET_LANGS, type Snippet
  */
 
 interface Options {
-  codesDir: string;
+  /** Rspress docs root; pages live in `<docsDir>/<locale>/<chapter>/...`. */
   docsDir: string;
+  /** Code tree per locale, e.g. `{ en: '../en/codes', zh: '../codes' }`. */
+  codesDirs: Record<string, string>;
 }
 
 // Minimal mdast shapes; the plugin only touches these fields.
@@ -88,14 +90,15 @@ function firstImageAlt(nodes: Node[]): string | undefined {
 export function remarkHelloAlgo(options: Options) {
   return (tree: Node, file: { path?: string; history?: string[] }) => {
     const filePath = file.path ?? file.history?.[0] ?? '';
-    const chapter = path.relative(options.docsDir, filePath).split(path.sep)[0] ?? '';
+    const [locale = '', chapter = ''] = path.relative(options.docsDir, filePath).split(path.sep);
+    const codesDir = options.codesDirs[locale];
 
     const expandSrc = (node: Node): Node => {
       const ref = parseSnippetRef(node.value ?? '');
-      if (!ref) return node;
+      if (!ref || !codesDir) return node;
       const items: TabItem[] = [];
       for (const lang of SNIPPET_LANGS) {
-        const codeFile = findCodeFile(options.codesDir, lang, chapter, ref.file);
+        const codeFile = findCodeFile(codesDir, lang, chapter, ref.file);
         if (!codeFile) continue;
         const code = extractSnippet(fs.readFileSync(codeFile, 'utf8'), lang, ref);
         if (code) items.push({ lang, label: LANG_INFO[lang].label, fence: lang, code });

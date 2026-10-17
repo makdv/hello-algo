@@ -1,13 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from '@rstest/core';
+import { LOCALES } from '../../scripts/locales.ts';
 import { findCodeFile } from './codeFiles';
 import { extractSnippet, parseSnippetRef, SNIPPET_LANGS, type SnippetLang } from './snippets';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const codesDir = path.join(repo, 'en/codes');
-const docsDir = path.join(repo, 'en/docs');
 
 function read(lang: SnippetLang, chapter: string, file: string) {
   const p = findCodeFile(codesDir, lang, chapter, file);
@@ -61,8 +61,8 @@ describe('extractSnippet on known code', () => {
   });
 });
 
-/** Every `src` reference in the English book, resolved in every language that has the file. */
-function collectRefs() {
+/** Every `src` reference in a book, with the chapter it appears in. */
+function collectRefs(docsDir: string) {
   const refs: { page: string; chapter: string; text: string }[] = [];
   const walk = (dir: string) => {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -80,30 +80,34 @@ function collectRefs() {
   return refs;
 }
 
-describe('coverage over the English book', () => {
-  it('resolves nearly every snippet in every language', () => {
-    const refs = collectRefs();
-    expect(refs.length).toBeGreaterThan(100);
-    const failures: Record<string, string[]> = {};
-    let attempts = 0;
-    let ok = 0;
-    for (const r of refs) {
-      const ref = parseSnippetRef(r.text);
-      expect(ref, r.text).not.toBeNull();
-      for (const lang of SNIPPET_LANGS) {
-        const file = findCodeFile(codesDir, lang, r.chapter, ref!.file);
-        if (!file) continue;
-        attempts++;
-        const code = extractSnippet(fs.readFileSync(file, 'utf8'), lang, ref!);
-        if (code && code.trim()) ok++;
-        else (failures[lang] ??= []).push(`${r.page}: ${r.text}`);
+describe('coverage over every translation of the book', () => {
+  for (const locale of LOCALES) {
+    it(`resolves nearly every snippet in every language (${locale.lang})`, () => {
+      const docsDir = path.join(repo, locale.source, 'docs');
+      const localeCodes = path.join(repo, locale.source, 'codes');
+      const refs = collectRefs(docsDir);
+      expect(refs.length).toBeGreaterThan(100);
+      const failures: Record<string, string[]> = {};
+      let attempts = 0;
+      let ok = 0;
+      for (const r of refs) {
+        const ref = parseSnippetRef(r.text);
+        expect(ref).not.toBeNull();
+        for (const lang of SNIPPET_LANGS) {
+          const file = findCodeFile(localeCodes, lang, r.chapter, ref!.file);
+          if (!file) continue;
+          attempts++;
+          const code = extractSnippet(fs.readFileSync(file, 'utf8'), lang, ref!);
+          if (code && code.trim()) ok++;
+          else (failures[lang] ??= []).push(`${r.page}: ${r.text}`);
+        }
       }
-    }
-    const rate = ok / attempts;
-    const summary = Object.entries(failures)
-      .map(([lang, list]) => `${lang}: ${list.length}\n  ${list.slice(0, 40).join('\n  ')}`)
-      .join('\n');
-    if (Object.keys(failures).length) console.log(`snippet coverage ${(rate * 100).toFixed(1)}% (${ok}/${attempts})\n${summary}`);
-    expect(rate).toBeGreaterThan(0.97);
-  });
+      const rate = ok / attempts;
+      const summary = Object.entries(failures)
+        .map(([lang, list]) => `${lang}: ${list.length}\n  ${list.slice(0, 40).join('\n  ')}`)
+        .join('\n');
+      if (Object.keys(failures).length) console.log(`[${locale.lang}] snippet coverage ${(rate * 100).toFixed(1)}% (${ok}/${attempts})\n${summary}`);
+      expect(rate).toBeGreaterThan(0.99);
+    });
+  }
 });

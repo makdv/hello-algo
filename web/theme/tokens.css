@@ -241,8 +241,9 @@ kbd {
   font-family: var(--ha-font-mono);
 }
 
-/* The theme picker replaces Rspress's light/dark toggle. */
-.rp-switch-appearance {
+/* The theme picker replaces Rspress's light/dark toggle (nav button and the menu's "Theme" row). */
+.rp-switch-appearance,
+.rp-nav-screen-appearance {
   display: none !important;
 }
 
