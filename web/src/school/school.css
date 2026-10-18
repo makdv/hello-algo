@@ -901,3 +901,249 @@
     font-size: 14px;
   }
 }
+
+/* ── Lessons ─────────────────────────────────────────────────────────── */
+
+/* Figure-kit scenes inside the School use its cartoon palette and round font. */
+.hs {
+  --ha-font-sans: Fredoka, 'Nunito', system-ui, sans-serif;
+  --ha-font-mono: Fredoka, 'Nunito', system-ui, sans-serif;
+  --ha-text: var(--ink);
+  --ha-muted: var(--soft-ink);
+  --ha-surface: var(--card);
+  --ha-surface-2: #eef6ff;
+  --ha-border: #c9dcef;
+  --ha-accent: var(--look);
+  --ha-soft: #efe9ff;
+  --ha-on-soft: #2a1d66;
+  --ha-cell: #ffffff;
+  --ha-on-cell: #1e2a3a;
+  --ha-cell-line: #1e2a3a;
+  --ha-cmp: #e6defe;
+  --ha-on-cmp: #2a1d66;
+  --ha-cmp-line: var(--look);
+  --ha-swp: #ffe1d6;
+  --ha-on-swp: #7a2a12;
+  --ha-swp-line: var(--hop);
+  --ha-done: #d7f5e1;
+  --ha-on-done: #0d4d2a;
+  --ha-done-line: var(--home);
+  --ha-tk-fn: #1d8fe0;
+  --ha-tk-num: #e0672f;
+}
+
+.hs--night {
+  --ha-surface-2: #2f3974;
+  --ha-border: #4a5699;
+  --ha-soft: #3a3270;
+  --ha-on-soft: #e7dcf5;
+  --ha-cell: #262f63;
+  --ha-on-cell: #f4f6ff;
+  --ha-cell-line: #8d97d6;
+  --ha-cmp: #3a3270;
+  --ha-on-cmp: #ece6ff;
+  --ha-swp: #5a3328;
+  --ha-on-swp: #ffd9cc;
+  --ha-done: #1f4a3a;
+  --ha-on-done: #c7f7dc;
+  --ha-tk-fn: #8fc1ff;
+  --ha-tk-num: #ffb38a;
+}
+
+.hs .ha-sn--box .ha-sn__shape { stroke-width: 2.5; }
+.hs .ha-sn__line { stroke-width: 2.25; }
+.hs .ha-sn__mono,
+.hs .ha-sn__sans { font-weight: 600; }
+
+.hs-lesson {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 4px 24px 48px;
+}
+
+.hs-lesson__body { margin-top: 8px; }
+
+.hs-phases {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 18px;
+}
+
+.hs-phase {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+  padding: 0 18px 0 8px;
+  border-radius: 24px;
+  border: 3px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hs-phase:disabled { opacity: 0.45; cursor: default; }
+.hs-phase.is-current { background: var(--btn); color: var(--on-btn); }
+.hs-phase.is-seen .hs-phase__no { background: var(--home); }
+
+.hs-phase__no {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--sun);
+  color: #1e2a3a;
+  font-size: 16px;
+}
+
+.hs-stage {
+  border-radius: 32px;
+  border: 4px solid var(--line);
+  background: var(--card);
+  padding: 14px 16px;
+  container-type: inline-size;
+}
+
+/* Keep the picture, Algo and the answers on one screen. */
+.hs-stage .ha-scene { max-height: min(46vh, 340px); }
+
+.hs-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.hs-big--choice {
+  background: var(--card);
+  color: var(--ink);
+  padding: 0 30px;
+  height: auto;
+  min-height: 70px;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.hs-big--choice.is-right { background: var(--home); color: #0b2b19; }
+.hs-big--choice.is-wrong { background: var(--hop); color: #3a1206; }
+.hs-big--choice.is-other { opacity: 0.5; }
+.hs-big--choice:disabled { cursor: default; }
+
+a.hs-big {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.hs-big--next { background: var(--home); color: #0b2b19; padding: 0 36px; }
+.hs-big--soft { background: var(--card); color: var(--ink); padding: 0 28px; font-size: 22px; }
+
+.hs-round:disabled { opacity: 0.4; cursor: default; }
+
+.hs-counter {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--soft-ink);
+  min-width: 56px;
+  text-align: center;
+}
+
+.hs-counter--top { margin: 0 0 10px; text-align: left; }
+
+.hs-done { text-align: center; }
+.hs-done h2 { margin: 6px 0 0; font-size: 40px; }
+.hs-done p { margin: 6px 0 0; font-size: 22px; color: var(--soft-ink); }
+
+.hs-done__stars {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.hs-star--big { width: 64px; height: 64px; animation: hs-pop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both; }
+.hs-star--big:nth-child(2) { animation-delay: 0.12s; }
+.hs-star--big:nth-child(3) { animation-delay: 0.24s; }
+.hs-star--big.is-empty { opacity: 0.25; }
+
+@keyframes hs-pop {
+  from { transform: scale(0.2); opacity: 0; }
+}
+
+.hs-main--embedded { padding: 0; }
+
+/* Header progress */
+.hs-progress { gap: 10px; }
+
+.hs-progress__bar {
+  width: 70px;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--ha-surface-2);
+  overflow: hidden;
+}
+
+.hs-progress__bar span {
+  display: block;
+  height: 100%;
+  background: var(--home);
+}
+
+/* Map: units of lessons */
+.hs-unit { margin: 0 0 28px; }
+
+.hs-unit__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0 0 14px;
+  font-size: 30px;
+}
+
+.hs-unit__no {
+  padding: 2px 14px;
+  border-radius: 16px;
+  border: 3px solid var(--line);
+  background: var(--unit);
+  color: #1e2a3a;
+  font-size: 18px;
+}
+
+.hs-unit .hs-hub__levels { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.hs-unit .hs-hub__card { border-top: 12px solid var(--unit); }
+.hs-hub__card.is-done .hs-hub__start { color: var(--home); font-weight: 700; }
+
+/* The sky toggle shows its icon on phones and its words on wider screens. */
+.hs-pill__icon { display: none; font-size: 18px; }
+
+@media (max-width: 640px) {
+  .hs-header { gap: 8px; padding: 10px 14px; }
+  .hs-header .hs-pill { height: 38px; padding: 0 10px; font-size: 14px; }
+  .hs-header__right { gap: 8px; }
+  .hs-progress__bar { width: 40px; }
+  .hs-pill__icon { display: inline; }
+  .hs-pill__text { display: none; }
+  .hs-logo { font-size: 19px; }
+  .hs-lesson { padding: 4px 14px 36px; }
+  .hs-lesson .hs-title h1 { font-size: 30px; }
+  .hs-stage { padding: 12px 4px; border-radius: 24px; }
+  .hs-phase { height: 42px; font-size: 16px; padding: 0 12px 0 6px; }
+  .hs-phase__no { width: 26px; height: 26px; }
+  .hs-big--choice { flex: 1 1 100%; min-height: 60px; font-size: 19px; }
+  .hs-big--soft { font-size: 18px; }
+  .hs-unit__title { font-size: 24px; }
+  .hs-done h2 { font-size: 30px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hs-star--big { animation: none; }
+}
