@@ -126,6 +126,14 @@ function splitUnits(lines: string[], level: number, family: 'brace' | 'py' | 'rb
     let end = i;
     if (family === 'py') {
       end = i + 1;
+      // A signature split over several lines ends with `):` at the def's own indent; keep going until the brackets balance.
+      const pyCode = (l: string) => codeOnly(l).replace(/#.*$/, '');
+      let open = (pyCode(line).match(/[([{]/g) ?? []).length - (pyCode(line).match(/[)\]}]/g) ?? []).length;
+      while (open > 0 && end < lines.length) {
+        const code = pyCode(lines[end]);
+        open += (code.match(/[([{]/g) ?? []).length - (code.match(/[)\]}]/g) ?? []).length;
+        end++;
+      }
       while (end < lines.length && (!lines[end].trim() || indentOf(lines[end]) > level)) end++;
     } else if (family === 'rb') {
       if (/^(def|class|module)\b/.test(trimmed) && !/\bend$/.test(trimmed)) {

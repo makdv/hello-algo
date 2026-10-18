@@ -24,6 +24,12 @@ describe('extractSnippet on known code', () => {
     expect(java.trim().endsWith('}')).toBe(true);
   });
 
+  it('keeps a Python function whose signature spans several lines', () => {
+    const py = extractSnippet(read('python', 'chapter_divide_and_conquer', 'build_tree'), 'python', { cls: '', func: 'dfs' })!;
+    expect(py).toContain('root = TreeNode(preorder[i])');
+    expect(py).toContain('return root');
+  });
+
   it('respects each language naming convention', () => {
     const cs = extractSnippet(read('csharp', 'chapter_sorting', 'bubble_sort'), 'csharp', { cls: '', func: 'bubble_sort' })!;
     expect(cs).toContain('BubbleSort(');
