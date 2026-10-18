@@ -537,3 +537,29 @@ export function ringLayout(ids: string[], cx: number, cy: number, radius: number
     }),
   );
 }
+
+// ── Grids (DP tables, boards) ─────────────────────────────────────────
+
+/**
+ * A 2D grid of cells, row by row. Cell ids are `<prefix><r>-<c>` unless a cell gives its own,
+ * so a value that changes keeps its cell and only recolors.
+ */
+export function grid(prefix: string, x: number, y: number, rows: Cell[][], opts: { w?: number; h?: number; gap?: number; size?: number } = {}) {
+  const { w = CELL, h = CELL, gap = GAP, size } = opts;
+  return rows.flatMap((row, r) =>
+    row.map((c, k) =>
+      box(c.id ?? `${prefix}${r}-${k}`, x + k * (w + gap), y + r * (h + gap), c.value === null ? '' : c.value, {
+        w,
+        h,
+        size,
+        tone: c.tone ?? (c.value === null ? 'ghost' : 'idle'),
+        dashed: c.dashed ?? c.value === null,
+        dim: c.dim,
+        ring: c.ring,
+      }),
+    ),
+  );
+}
+
+/** Top-left corner of a grid cell, for arrows and labels. */
+export const gridAt = (x: number, y: number, r: number, c: number, w = CELL, h = CELL, gap = GAP) => ({ x: x + c * (w + gap), y: y + r * (h + gap), w, h });

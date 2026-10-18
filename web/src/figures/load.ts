@@ -16,6 +16,9 @@ const CHAPTERS: Record<string, () => Promise<ChapterModule>> = {
   chapter_searching: () => import('./chapters/searching'),
   chapter_sorting: () => import('./chapters/sorting'),
   chapter_divide_and_conquer: () => import('./chapters/divideConquer'),
+  chapter_backtracking: () => import('./chapters/backtracking'),
+  chapter_dynamic_programming: () => import('./chapters/dynamicProgramming'),
+  chapter_greedy: () => import('./chapters/greedy'),
 };
 
 /** Loads a figure by `chapter/id`, e.g. `chapter_hashing/hash_function`. */
