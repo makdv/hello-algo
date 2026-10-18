@@ -4,6 +4,7 @@ type ChapterModule = { default: Record<string, Figure> };
 
 /** One bundle per chapter, loaded when a page with its figures opens. */
 const CHAPTERS: Record<string, () => Promise<ChapterModule>> = {
+  chapter_preface: () => import('./chapters/preface'),
   chapter_introduction: () => import('./chapters/introduction'),
   chapter_computational_complexity: () => import('./chapters/complexity'),
   chapter_data_structure: () => import('./chapters/dataStructure'),

@@ -7,6 +7,7 @@
  * for `array_stack_step1.png`, `array_stack_step2_push.png`, ….
  */
 export const FIGURE_IDS: Record<string, string[]> = {
+  chapter_preface: ['hello_algo_mindmap', 'learning_route'],
   chapter_introduction: [
     'binary_search_dictionary_steps',
     'playing_cards_sorting',
