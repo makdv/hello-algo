@@ -46,6 +46,16 @@ The MkDocs books stay the source of truth. `bun run convert`
 nav. Everything in `docs/` except `public/` is gitignored, so edit the book in its
 MkDocs folder and rerun the command.
 
+The converter only rewrites files whose content changed and removes files it no longer
+produces. Unchanged pages keep their timestamps, so a running dev server rebuilds just
+what changed and Rspack's persistent cache (`node_modules/.cache/rspack`) can reuse its
+entries instead of storing a new copy of every page on each run.
+
+`bun run build` turns that cache off (`RSPRESS_PERSISTENT_CACHE=false`): for this site the
+production cache is about 4 GB, for a build that takes under a minute without it. The dev
+server keeps its cache, which stays around 100 MB. If the dev server ever fails to start
+with an Rspack panic, delete `node_modules/.cache/rspack` and start it again.
+
 The converter turns MkDocs syntax into Rspress Markdown:
 
 | MkDocs | Rspress |
