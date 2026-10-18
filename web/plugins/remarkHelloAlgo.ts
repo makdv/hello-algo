@@ -12,6 +12,8 @@ import { extractSnippet, LANG_INFO, parseSnippetRef, SNIPPET_LANGS, type Snippet
  *   MkDocs language tabs) become <CodeTabs>.
  * - Content between `<!-- ha:steps -->` markers (MkDocs `<1>`, `<2>` image tabs)
  *   becomes a <StepFrames> figure.
+ * - `<!-- ha:player id :: caption -->` (a step figure with an interactive replacement)
+ *   becomes an <AlgoFigure> player.
  */
 
 interface Options {
@@ -129,6 +131,12 @@ export function remarkHelloAlgo(options: Options) {
         const node = children[i];
         if (node.type === 'code' && node.lang === 'src') {
           children[i] = expandSrc(node);
+          continue;
+        }
+        const player = node.type === 'html' ? node.value?.trim().match(/^<!-- ha:player (\S+) :: ([\s\S]*?) -->$/) : null;
+        if (player) {
+          // The converter's marker for a step figure replaced by an interactive player.
+          children[i] = jsx('AlgoFigure', player[2] ? { algorithm: player[1], caption: player[2] } : { algorithm: player[1] }, []);
           continue;
         }
         if (node.type === 'math') {

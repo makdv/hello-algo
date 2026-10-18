@@ -34,8 +34,9 @@ bun run build      # converts, then builds the static site into doc_build/
 Locales are defined once in `scripts/locales.ts` (labels, admonition titles, nav text);
 the converter, the Rspress config and the snippet coverage test all read it. Code
 snippets on each page come from that locale's own `codes/` folder, so comments are
-translated too. The interactive bubble sort page and the School view are English-only;
-other locales show the book's original step figures.
+translated too. The interactive players, the Explore workbench and the School view are
+translated into all five languages (`src/i18n/ui.ts` for interface text, each algorithm's
+own tables for narration).
 
 ## Where content comes from
 
@@ -68,19 +69,46 @@ It extracts the function, method or class from the locale's `codes/<lang>/<chapt
 for up to 14 languages (`src/engine/snippets.ts`; the English tree has no Zig), and a
 test checks that every reference in every translation resolves.
 
-Hand-written pages in `content/<locale>/` replace the generated page at the same path.
-For example, `content/en/chapter_sorting/bubble_sort.mdx` is the interactive bubble sort
-page and `content/en/school/` is the School view.
+Hand-written pages in `content/<locale>/` replace the generated page at the same path
+(none are needed right now).
+
+## Visualizers
+
+Each visualized algorithm is a recorded trace (`src/algorithms/<name>.ts`): the function
+runs once on the input and returns a list of frames (array, marks, pointers, variables,
+the active range), plus narration for two voices (reader and kid) in every locale, Predict
+questions, and anchors that tie each event to a line of the book's Python and Java code.
+`src/algorithms/registry.ts` lists them and loads each on demand.
+
+| Algorithm | Book page | School level |
+| --- | --- | --- |
+| Bubble sort | `chapter_sorting/bubble_sort` | 1 |
+| Selection sort | `chapter_sorting/selection_sort` | 2 |
+| Insertion sort | `chapter_sorting/insertion_sort` | 3 |
+| Binary search | `chapter_searching/binary_search` | 4 |
+| Quick sort | `chapter_sorting/quick_sort` | 5 |
+| Merge sort | `chapter_sorting/merge_sort` | 6 |
+
+The converter places a player where the book had the step-by-step figure for that
+algorithm (`scripts/players.ts`, `PLAYER_PLACEMENTS`): it writes a
+`<!-- ha:player id :: caption -->` marker, which the remark plugin turns into
+`<AlgoFigure>`. Every other figure stays the book's original image. The converter also
+writes the School pages, `school/` (the level map) and `school/<id>`, for each locale.
+
+To add an algorithm: write its trace and spec, add it to the registry, map its figure in
+`PLAYER_PLACEMENTS` (and `SCHOOL_LEVELS`), and the shared tests in
+`src/algorithms/algorithms.test.ts` check sorting, anchors and narration in every locale.
 
 ## Layout
 
 - `content/<locale>/` – hand-written pages that override generated ones.
 - `docs/` – Rspress root: `public/` is committed, `docs/<locale>/` is generated.
 - `plugins/` – the remark plugin for snippets, code tabs, step figures and display math.
-- `scripts/` – locales, the MkDocs converter and the `mkdocs.yml` nav reader (also used for the sidebars).
+- `scripts/` – locales, the MkDocs converter, player placements and the `mkdocs.yml` nav reader (also used for the sidebars).
 - `theme/` – Rspress theme override (theme picker in the nav) and `tokens.css`, the six palettes.
 - `src/engine/` – trace types, playback (`usePlayer`), Predict mode, code extraction and highlighting.
-- `src/algorithms/` – one recorded-trace implementation per algorithm, with code anchors per language.
+- `src/algorithms/` – one recorded-trace implementation per algorithm, with code anchors per language, and the registry.
 - `src/components/` – the compact player (Watch / Predict), the Explore workbench, array stage, code view.
-- `src/mdx/` – components available in every page: `CodeTabs`, `CodeTab`, `StepFrames`.
-- `src/school/` – the cartoon School view.
+- `src/mdx/` – components available in every page: `CodeTabs`, `CodeTab`, `StepFrames`, `AlgoFigure`.
+- `src/i18n/` – locale helpers and interface text for the players and the School view.
+- `src/school/` – the cartoon School view: level map, levels, stars.

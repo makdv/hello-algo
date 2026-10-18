@@ -15,6 +15,8 @@ export function ArrayStage({ frame, view = 'cells', size = 'md' }: Props) {
   const n = frame.items.length;
   const max = Math.max(1, ...frame.items.map((it) => it.value));
   const at = (index: number) => ({ ['--i' as string]: index }) as CSSProperties;
+  // Elements outside the active range (a partition, a merge, a search interval) are dimmed.
+  const out = (index: number) => Boolean(frame.range) && (index < frame.range![0] || index > frame.range![1]);
 
   const labels = new Map<number, string[]>();
   for (const p of frame.pointers) labels.set(p.index, [...(labels.get(p.index) ?? []), p.label]);
@@ -41,7 +43,7 @@ export function ArrayStage({ frame, view = 'cells', size = 'md' }: Props) {
         {frame.items.map((it, index) => (
           <div
             key={it.id}
-            className={`ha-item ha-mark--${frame.marks[index]}`}
+            className={`ha-item ha-mark--${frame.marks[index]}${out(index) ? ' is-out' : ''}`}
             style={{
               ...at(index),
               ...(view === 'bars' ? { height: Math.round(24 + (BAR_AREA - 24) * (it.value / max)) + 28 } : {}),
@@ -60,7 +62,7 @@ export function ArrayStage({ frame, view = 'cells', size = 'md' }: Props) {
       </div>
       <div className="ha-stage__row ha-stage__indices" aria-hidden="true">
         {frame.items.map((it, index) => (
-          <span key={index} style={at(index)}>
+          <span key={index} style={at(index)} className={out(index) ? 'is-out' : undefined}>
             {index}
           </span>
         ))}

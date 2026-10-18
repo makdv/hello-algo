@@ -11,6 +11,7 @@ export interface LocaleInfo {
   admonitions: Record<string, string>;
   pythonTutor: string;
   bookNav: string;
+  schoolNav: string;
 }
 
 /** English is the default locale and is served without a URL prefix. */
@@ -24,6 +25,7 @@ export const LOCALES: LocaleInfo[] = [
     admonitions: { abstract: 'Abstract', note: 'Note', tip: 'Tip', question: 'Question', quote: 'Quote', success: 'Success', info: 'Info', warning: 'Warning' },
     pythonTutor: 'run it step by step in Python Tutor',
     bookNav: 'Book',
+    schoolNav: 'School',
   },
   {
     lang: 'zh',
@@ -32,6 +34,7 @@ export const LOCALES: LocaleInfo[] = [
     admonitions: { abstract: '摘要', note: '备注', tip: '提示', question: '问题', quote: '引用', success: '成功', info: '信息', warning: '警告' },
     pythonTutor: '在 Python Tutor 中逐步运行',
     bookNav: '目录',
+    schoolNav: '学堂',
   },
   {
     lang: 'zh-hant',
@@ -40,6 +43,7 @@ export const LOCALES: LocaleInfo[] = [
     admonitions: { abstract: '摘要', note: '備註', tip: '提示', question: '問題', quote: '引用', success: '成功', info: '資訊', warning: '警告' },
     pythonTutor: '在 Python Tutor 中逐步執行',
     bookNav: '目錄',
+    schoolNav: '學堂',
   },
   {
     lang: 'ja',
@@ -48,6 +52,7 @@ export const LOCALES: LocaleInfo[] = [
     admonitions: { abstract: '概要', note: '注記', tip: 'ヒント', question: '質問', quote: '引用', success: '成功', info: '情報', warning: '警告' },
     pythonTutor: 'Python Tutor でステップ実行',
     bookNav: '目次',
+    schoolNav: 'スクール',
   },
   {
     lang: 'ru',
@@ -65,6 +70,7 @@ export const LOCALES: LocaleInfo[] = [
     },
     pythonTutor: 'пошаговый запуск в Python Tutor',
     bookNav: 'Книга',
+    schoolNav: 'Школа',
   },
 ];
 

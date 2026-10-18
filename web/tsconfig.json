@@ -15,7 +15,11 @@
     "types": ["@rsbuild/core/types", "node"],
     "paths": {
       "@viz/*": ["./src/*"],
-      "@codes/*": ["../en/codes/*"]
+      "@codes-en/*": ["../en/codes/*"],
+      "@codes-zh/*": ["../codes/*"],
+      "@codes-zh-hant/*": ["../zh-hant/codes/*"],
+      "@codes-ja/*": ["../ja/codes/*"],
+      "@codes-ru/*": ["../ru/codes/*"]
     }
   },
   "include": ["src", "theme", "docs", "content", "plugins", "scripts", "rspress.config.ts"]
