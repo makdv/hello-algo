@@ -223,9 +223,58 @@ function assetRefs(md: string): string[] {
   return refs.filter((r) => !/^([a-z]+:)?\/\//i.test(r) && !r.startsWith('/') && !r.startsWith('data:'));
 }
 
-function copyFile(from: string, to: string) {
-  fs.mkdirSync(path.dirname(to), { recursive: true });
-  fs.copyFileSync(from, to);
+/**
+ * A generated output folder that only touches what changed: files are rewritten only when their
+ * content differs, and files left over from an earlier run are removed at the end. Unchanged pages
+ * keep their timestamps, so the dev server does not rebuild them and Rspack's persistent cache can
+ * reuse its entries instead of storing a fresh copy of every module on each run.
+ */
+class OutputDir {
+  private readonly produced = new Set<string>();
+
+  constructor(readonly root: string) {
+    fs.mkdirSync(root, { recursive: true });
+  }
+
+  has(file: string) {
+    return this.produced.has(path.resolve(file));
+  }
+
+  write(file: string, content: string | Buffer) {
+    const target = path.resolve(file);
+    this.produced.add(target);
+    const data = typeof content === 'string' ? Buffer.from(content) : content;
+    if (fs.existsSync(target) && fs.readFileSync(target).equals(data)) return;
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, data);
+  }
+
+  copy(from: string, to: string) {
+    this.write(to, fs.readFileSync(from));
+  }
+
+  remove(file: string) {
+    const target = path.resolve(file);
+    this.produced.delete(target);
+    fs.rmSync(target, { force: true });
+  }
+
+  /** Deletes files this run did not produce, then any folders left empty. */
+  prune(dir = this.root): boolean {
+    let empty = true;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (this.prune(p)) fs.rmdirSync(p);
+        else empty = false;
+      } else if (!this.produced.has(p)) {
+        fs.rmSync(p);
+      } else {
+        empty = false;
+      }
+    }
+    return empty;
+  }
 }
 
 function listMarkdown(dir: string, root = dir): string[] {
@@ -268,9 +317,8 @@ import { Home } from '@viz/home/Home';
 }
 
 /** The School view for a locale: a hub page plus one page per level. */
-function writeSchool(locale: LocaleInfo, outDocs: string) {
-  const dir = path.join(outDocs, 'school');
-  fs.mkdirSync(dir, { recursive: true });
+function writeSchool(locale: LocaleInfo, out: OutputDir) {
+  const dir = path.join(out.root, 'school');
   const page = (title: string, body: string) => `---
 title: ${title}
 pageType: blank
@@ -278,12 +326,12 @@ pageType: blank
 
 ${body}
 `;
-  fs.writeFileSync(
+  out.write(
     path.join(dir, 'index.mdx'),
     page('School', `import { SchoolHub } from '@viz/school/SchoolHub';\n\n<SchoolHub locale="${locale.lang}" />`),
   );
   for (const id of SCHOOL_LEVELS) {
-    fs.writeFileSync(
+    out.write(
       path.join(dir, `${id}.mdx`),
       page('School', `import { SchoolLevel } from '@viz/school/SchoolLevel';\n\n<SchoolLevel locale="${locale.lang}" algorithm="${id}" />`),
     );
@@ -294,8 +342,7 @@ function convertLocale(locale: LocaleInfo) {
   const srcDocs = path.join(repoDir, locale.source, 'docs');
   const outDocs = path.join(outRoot, locale.lang);
   const overridesDir = path.join(overridesRoot, locale.lang);
-  fs.rmSync(outDocs, { recursive: true, force: true });
-  fs.mkdirSync(outDocs, { recursive: true });
+  const out = new OutputDir(outDocs);
 
   const nav = readNav(path.join(repoDir, locale.source, 'mkdocs.yml'));
   const ordered: { file: string; ctx: Context }[] = [];
@@ -318,24 +365,22 @@ function convertLocale(locale: LocaleInfo) {
     const from = path.join(srcDocs, file);
     if (!fs.existsSync(from)) continue;
     const md = convertMarkdown(fs.readFileSync(from, 'utf8'), ctx);
-    const to = path.join(outDocs, file);
-    fs.mkdirSync(path.dirname(to), { recursive: true });
-    fs.writeFileSync(to, md);
+    out.write(path.join(outDocs, file), md);
     pages++;
     for (const ref of assetRefs(md)) {
       const clean = decodeURI(ref.split('#')[0].split('?')[0]);
       const asset = path.resolve(path.dirname(from), clean);
       if (!fs.existsSync(asset)) continue;
       const target = path.join(outDocs, path.relative(srcDocs, asset));
-      if (!fs.existsSync(target)) {
-        copyFile(asset, target);
+      if (!out.has(target)) {
+        out.copy(asset, target);
         assets++;
       }
     }
   }
 
-  fs.writeFileSync(path.join(outDocs, 'index.mdx'), homePage(locale, nav));
-  writeSchool(locale, outDocs);
+  out.write(path.join(outDocs, 'index.mdx'), homePage(locale, nav));
+  writeSchool(locale, out);
 
   // Hand-written pages replace their generated counterparts.
   let overrides = 0;
@@ -348,14 +393,15 @@ function convertLocale(locale: LocaleInfo) {
         continue;
       }
       const rel = path.relative(overridesDir, p);
-      copyFile(p, path.join(outDocs, rel));
+      out.copy(p, path.join(outDocs, rel));
       if (rel.endsWith('.mdx')) {
-        fs.rmSync(path.join(outDocs, rel.replace(/\.mdx$/, '.md')), { force: true });
+        out.remove(path.join(outDocs, rel.replace(/\.mdx$/, '.md')));
         overrides++;
       }
     }
   };
   overlay(overridesDir);
+  out.prune();
 
   console.log(`[convert-mkdocs] ${locale.lang}: ${pages} pages, ${assets} assets, ${overrides} hand-written overrides`);
 }

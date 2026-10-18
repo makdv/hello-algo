@@ -6,7 +6,7 @@
   "scripts": {
     "convert": "bun scripts/convert-mkdocs.ts",
     "dev": "bun run convert && rspress",
-    "build": "bun run convert && rspress build",
+    "build": "bun run convert && RSPRESS_PERSISTENT_CACHE=false rspress build",
     "preview": "rspress preview",
     "test": "rstest run",
     "typecheck": "tsc --noEmit"
