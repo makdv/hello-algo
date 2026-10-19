@@ -23,7 +23,8 @@ import { fileURLToPath } from 'node:url';
 import { LOCALES, type LocaleInfo, localePrefix } from './locales.ts';
 import { readNav, routeOf } from './nav.ts';
 import { figureIdOf, hasFigure } from '../src/figures/registry.ts';
-import { PLAYER_PLACEMENTS, SCHOOL_LEVELS } from './players.ts';
+import { LESSONS } from '../src/school/lessons/catalog.ts';
+import { PLAYER_PLACEMENTS } from './players.ts';
 
 const webDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repoDir = path.resolve(webDir, '..');
@@ -316,7 +317,7 @@ import { Home } from '@viz/home/Home';
 `;
 }
 
-/** The School view for a locale: a hub page plus one page per level. */
+/** The School for a locale: the map page plus one page per lesson. */
 function writeSchool(locale: LocaleInfo, out: OutputDir) {
   const dir = path.join(out.root, 'school');
   const page = (title: string, body: string) => `---
@@ -330,10 +331,10 @@ ${body}
     path.join(dir, 'index.mdx'),
     page('School', `import { SchoolHub } from '@viz/school/SchoolHub';\n\n<SchoolHub locale="${locale.lang}" />`),
   );
-  for (const id of SCHOOL_LEVELS) {
+  for (const lesson of LESSONS) {
     out.write(
-      path.join(dir, `${id}.mdx`),
-      page('School', `import { SchoolLevel } from '@viz/school/SchoolLevel';\n\n<SchoolLevel locale="${locale.lang}" algorithm="${id}" />`),
+      path.join(dir, `${lesson.id}.mdx`),
+      page('School', `import { SchoolLesson } from '@viz/school/SchoolLesson';\n\n<SchoolLesson locale="${locale.lang}" lesson="${lesson.id}" />`),
     );
   }
 }

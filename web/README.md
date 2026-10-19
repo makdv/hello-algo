@@ -90,24 +90,42 @@ the active range), plus narration for two voices (reader and kid) in every local
 questions, and anchors that tie each event to a line of the book's Python and Java code.
 `src/algorithms/registry.ts` lists them and loads each on demand.
 
-| Algorithm | Book page | School level |
-| --- | --- | --- |
-| Bubble sort | `chapter_sorting/bubble_sort` | 1 |
-| Selection sort | `chapter_sorting/selection_sort` | 2 |
-| Insertion sort | `chapter_sorting/insertion_sort` | 3 |
-| Binary search | `chapter_searching/binary_search` | 4 |
-| Quick sort | `chapter_sorting/quick_sort` | 5 |
-| Merge sort | `chapter_sorting/merge_sort` | 6 |
+| Algorithm | Book page |
+| --- | --- |
+| Bubble sort | `chapter_sorting/bubble_sort` |
+| Selection sort | `chapter_sorting/selection_sort` |
+| Insertion sort | `chapter_sorting/insertion_sort` |
+| Binary search | `chapter_searching/binary_search` |
+| Quick sort | `chapter_sorting/quick_sort` |
+| Merge sort | `chapter_sorting/merge_sort` |
 
 The converter places a player where the book had the step-by-step figure for that
 algorithm (`scripts/players.ts`, `PLAYER_PLACEMENTS`): it writes a
 `<!-- ha:player id :: caption -->` marker, which the remark plugin turns into
-`<AlgoFigure>`. Every other figure stays the book's original image. The converter also
-writes the School pages, `school/` (the level map) and `school/<id>`, for each locale.
+`<AlgoFigure>`. The converter also writes the School pages, `school/` (the map) and
+`school/<lesson>`, for each locale.
 
 To add an algorithm: write its trace and spec, add it to the registry, map its figure in
-`PLAYER_PLACEMENTS` (and `SCHOOL_LEVELS`), and the shared tests in
+`PLAYER_PLACEMENTS`, and the shared tests in
 `src/algorithms/algorithms.test.ts` check sorting, anchors and narration in every locale.
+
+## School
+
+The School (`/school/`) teaches the book to 8–12 year olds in 24 lessons across four units:
+thinking like a computer, ways to keep data, finding and sorting, and clever ways to solve
+puzzles. Every lesson has three parts:
+
+1. **Story**: Algo the robot explains the idea with an everyday picture (plates for a
+   stack, a line for a queue), slide by slide.
+2. **Try it**: the reader works through it and guesses what happens next. The six
+   algorithm lessons play the bubble game; the rest step through a guided example.
+3. **Quiz**: three quick questions. Every right answer earns a star.
+
+Progress and stars are kept in the browser. Lessons are data: `src/school/lessons/catalog.ts`
+lists them (the converter reads it to write one page per lesson), and each unit's content
+lives in `src/school/lessons/units/<unit>.ts`, drawn with the same kit as the book's figures
+in the School's own colors. `src/school/lessons/lessons.test.ts` checks every lesson in
+every locale.
 
 ## Redrawn figures
 
@@ -147,4 +165,4 @@ and renders.
 - `src/mdx/` – components available in every page: `CodeTabs`, `CodeTab`, `StepFrames`, `AlgoFigure`, `Fig`.
 - `src/figures/` – redrawn book figures: scene model, layout kit, SVG renderer, step player, one module per chapter.
 - `src/i18n/` – locale helpers and interface text for the players and the School view.
-- `src/school/` – the cartoon School view: level map, levels, stars.
+- `src/school/` – the School for 8–12 year olds: the map, lessons, stars and progress.
