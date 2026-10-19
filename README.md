@@ -49,6 +49,18 @@
   <a href="https://github.com/krahets/hello-algo/blob/main/ru/README.md">Русский</a>
 </p>
 
+> [!NOTE]
+> **This fork adds a redesigned site in [`web/`](web/README.md):** Rspress 2 with interactive
+> algorithm players, every book figure redrawn in the browser, six color themes, five languages
+> and a School for 8–12 year olds. See [web/README.md](web/README.md) for screenshots and how to run it.
+>
+> 本仓库的 [`web/`](web/README.md) 目录是对网站的实验性重新设计：交互式算法演示、全部插图在浏览器中重绘、
+> 六种配色、五种语言，以及面向 8–12 岁孩子的“算法学校”。截图与运行方式见 [web/README.md](web/README.md)。
+
+<p align="center">
+  <a href="web/README.md"><img src="web/screenshots/home.png" width="720" alt="The redesigned Hello Algo site"></a>
+</p>
+
 ## 关于本书
 
 本项目旨在打造一本开源免费、新手友好的数据结构与算法入门教程。
