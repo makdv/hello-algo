@@ -315,7 +315,13 @@ const MAZE_PRACTICE: Record<'start' | 'grow' | 'askFork' | 'six' | 'askStar' | '
     'どちらも 5 になった。波はさらに進んで、つぎのへやは 6。',
     'Обе получили 5. Круги идут дальше, и следующие комнаты получают 6.',
   ),
-  askStar: t('What number will the star room get?', '星星所在的房间会写几？', '星星所在的房間會寫幾？', '星のへやには何が入る？', 'Какое число получит комната со звездой?'),
+  askStar: t(
+    "The star room now shows '?'. What number will it get?",
+    '星星所在的房间现在标着“?”。它会写几？',
+    '星星所在的房間現在標著「?」。它會寫幾？',
+    '星のへやは、いま「?」になっている。何が入る？',
+    'Комната со звездой теперь помечена «?». Какое число она получит?',
+  ),
   found: t(
     'The star got 7. Follow the numbers down, 7, 6, 5… back to 0, and you have the shortest path!',
     '星星是 7。顺着数字往回走：7、6、5……一直到 0，就是最短的路！',
@@ -571,8 +577,8 @@ function greedyFails(l: Locale): Scene {
 const GREEDY_STORY: Record<'intro' | 'idea' | 'first' | 'done' | 'shop' | 'fail', T> = {
   intro: t(
     'Algo runs a shop and must give back 31 in change. The coins are 20, 10, 5 and 1. Use as few coins as possible!',
-    'Algo 开了一家小店，要找给客人 31 元。硬币有 20、10、5 和 1。用的硬币越少越好！',
-    'Algo 開了一家小店，要找給客人 31 元。硬幣有 20、10、5 和 1。用的硬幣越少越好！',
+    'Algo 开了一家小店，要给客人找零 31。硬币有 20、10、5 和 1。用的硬币越少越好！',
+    'Algo 開了一家小店，要給客人找零 31。硬幣有 20、10、5 和 1。用的硬幣越少越好！',
     'Algo のお店で、おつりを 31 わたしたい。コインは 20、10、5、1。できるだけ少ないまい数でわたそう！',
     'У Algo магазинчик, и нужно дать сдачу 31. Есть монеты 20, 10, 5 и 1. Монет должно быть как можно меньше!',
   ),
@@ -598,11 +604,11 @@ const GREEDY_STORY: Record<'intro' | 'idea' | 'first' | 'done' | 'shop' | 'fail'
     'Для 11 берём 10, для последней единицы — 1. Готово: 20 + 10 + 1, всего 3 монеты!',
   ),
   shop: t(
-    'Greedy is fast and usually right, so cashiers give change this way every day. Real coins are picked so that it always works.',
-    '贪心又快，又常常是对的，收银员每天都这样找零。真正的硬币面值，正好让贪心总能成功。',
-    '貪婪又快，又常常是對的，店員每天都這樣找零。真正的硬幣面額，剛好讓貪婪總是成功。',
-    '貪欲法は速くて、たいてい正しい。レジの人も毎日この方法でおつりを出すよ。本物のコインは、これでうまくいくように決められているんだ。',
-    'Жадный способ быстрый и почти всегда верный: кассиры дают сдачу именно так. А настоящие монеты подобраны так, чтобы он всегда работал.',
+    'Greedy is quick: 26 is just 20 + 5 + 1. Cashiers give change this way every day, and real coins are picked so that it always works.',
+    '贪心很快：26 就是 20 + 5 + 1。收银员每天都这样找零，真正的硬币面值也正好让贪心总能成功。',
+    '貪婪很快：26 就是 20 + 5 + 1。店員每天都這樣找零，真正的硬幣面額也剛好讓貪婪總是成功。',
+    '貪欲法は速い。26 なら 20 + 5 + 1 ですぐ決まる。レジの人も毎日この方法でおつりを出すよ。本物のコインは、これでうまくいくように決められているんだ。',
+    'Жадный способ быстрый: 26 — это просто 20 + 5 + 1. Кассиры дают сдачу именно так, а настоящие монеты подобраны так, чтобы он всегда работал.',
   ),
   fail: t(
     'Careful! With coins 4, 3 and 1, greedy pays 6 as 4 + 1 + 1. But 3 + 3 needs only 2 coins.',
@@ -613,7 +619,7 @@ const GREEDY_STORY: Record<'intro' | 'idea' | 'first' | 'done' | 'shop' | 'fail'
   ),
 };
 
-const GREEDY_PRACTICE: Record<'start' | 'askFirst' | 'took10' | 'askNext' | 'took5' | 'askCount' | 'done', T> = {
+const GREEDY_PRACTICE: Record<'start' | 'askFirst' | 'took10' | 'askNext' | 'took5' | 'askLast' | 'done', T> = {
   start: t(
     'Your turn! Now Algo must pay 17 with coins 10, 5, 2 and 1.',
     '轮到你了！现在 Algo 要用 10、5、2、1 的硬币凑出 17。',
@@ -625,23 +631,17 @@ const GREEDY_PRACTICE: Record<'start' | 'askFirst' | 'took10' | 'askNext' | 'too
   took10: t('Take 10. Now 7 is left.', '拿 10，还差 7。', '拿 10，還差 7。', '10 を取ったよ。のこりは 7。', 'Берём 10. Остаётся 7.'),
   askNext: t('7 is left. Which coin comes next?', '还差 7。下一枚拿哪个？', '還差 7。下一枚拿哪個？', 'のこりは 7。つぎに取るのは？', 'Осталось 7. Какая монета следующая?'),
   took5: t('Take 5. Now 2 is left.', '拿 5，还差 2。', '拿 5，還差 2。', '5 を取ったよ。のこりは 2。', 'Берём 5. Остаётся 2.'),
-  askCount: t(
-    'How many coins does greedy use to pay 17 in all?',
-    '贪心付 17 一共用几枚硬币？',
-    '貪婪付 17 一共用幾枚硬幣？',
-    '17 をはらうのに、貪欲法は全部で何まい使う？',
-    'Сколько всего монет понадобится жадному способу для 17?',
-  ),
+  askLast: t('2 is left. Which coin does greedy take now?', '还差 2。贪心这次拿哪一枚？', '還差 2。貪婪這次拿哪一枚？', 'のこりは 2。貪欲法はこんどどれを取る？', 'Осталось 2. Какую монету жадный способ возьмёт теперь?'),
   done: t(
-    '10 + 5 + 2 = 17. Greedy never had to look ahead!',
-    '10 + 5 + 2 = 17。贪心一步也不用往后想！',
-    '10 + 5 + 2 = 17。貪婪一步也不用往後想！',
-    '10 + 5 + 2 = 17。貪欲法は、先のことを考えなくてよかったね！',
-    '10 + 5 + 2 = 17. И ни разу не пришлось думать наперёд!',
+    '10 + 5 + 2 = 17: just 3 coins. Greedy never had to look ahead!',
+    '10 + 5 + 2 = 17，只用 3 枚。贪心一步也不用往后想！',
+    '10 + 5 + 2 = 17，只用 3 枚。貪婪一步也不用往後想！',
+    '10 + 5 + 2 = 17。たった 3 まい！貪欲法は、先のことを考えなくてよかったね！',
+    '10 + 5 + 2 = 17 — всего 3 монеты. И ни разу не пришлось думать наперёд!',
   ),
 };
 
-const GREEDY_EXPLAIN: Record<'first' | 'next' | 'count', T> = {
+const GREEDY_EXPLAIN: Record<'first' | 'next' | 'last', T> = {
   first: t('10 is the biggest coin that fits in 17.', '10 是 17 里放得下的最大硬币。', '10 是 17 裡放得下的最大硬幣。', '10 は、17 に入るいちばん大きいコインだから。', '10 — самая большая монета, которая помещается в 17.'),
   next: t(
     '10 is too big for 7, so the biggest coin that fits is 5.',
@@ -650,12 +650,12 @@ const GREEDY_EXPLAIN: Record<'first' | 'next' | 'count', T> = {
     '10 は 7 より大きくて入らない。だから入るなかでいちばん大きいのは 5。',
     '10 больше 7 и не помещается, поэтому самая большая подходящая — 5.',
   ),
-  count: t(
-    'A 2 fits exactly: 10 + 5 + 2 = 17, just 3 coins.',
-    '2 刚好放得下：10 + 5 + 2 = 17，只用 3 枚。',
-    '2 剛好放得下：10 + 5 + 2 = 17，只用 3 枚。',
-    '2 がぴったり入る。10 + 5 + 2 = 17 で、たった 3 まい。',
-    '2 подходит точно: 10 + 5 + 2 = 17, всего 3 монеты.',
+  last: t(
+    '5 is too big for 2, and a 2 fits exactly. A 1 would leave 1 more to pay.',
+    '5 比 2 大，放不下；2 刚好放得下。拿 1 的话还差 1。',
+    '5 比 2 大，放不下；2 剛好放得下。拿 1 的話還差 1。',
+    '5 は 2 より大きくて入らない。2 ならぴったり。1 だと、まだ 1 のこるよ。',
+    '5 больше 2 и не помещается, а 2 подходит точно. С монетой 1 осталось бы ещё 1.',
   ),
 };
 
@@ -712,7 +712,7 @@ const greedy: LessonContent = {
       { scene: coins(l, { kinds: BIG, goal: 31, given: [], hot: 20 }), say: S.idea[l] },
       { scene: coins(l, { kinds: BIG, goal: 31, given: [20] }), say: S.first[l] },
       { scene: coins(l, { kinds: BIG, goal: 31, given: [20, 10, 1] }), say: S.done[l] },
-      { scene: coins(l, { kinds: SMALL, goal: 17, given: [10, 5, 2] }), say: S.shop[l] },
+      { scene: coins(l, { kinds: BIG, goal: 26, given: [20, 5, 1] }), say: S.shop[l] },
       { scene: greedyFails(l), say: S.fail[l] },
     ];
   },
@@ -725,7 +725,7 @@ const greedy: LessonContent = {
       { scene: coins(l, { kinds: SMALL, goal: 17, given: [10] }), say: P.took10[l] },
       { scene: coins(l, { kinds: SMALL, goal: 17, given: [10], tooBig: [10] }), say: P.askNext[l], ask: ask(P.askNext[l], [10, 5, 2], 5, E.next[l]) },
       { scene: coins(l, { kinds: SMALL, goal: 17, given: [10, 5], tooBig: [10] }), say: P.took5[l] },
-      { scene: coins(l, { kinds: SMALL, goal: 17, given: [10, 5], tooBig: [10, 5] }), say: P.askCount[l], ask: ask(P.askCount[l], [3, 4, 5], 3, E.count[l]) },
+      { scene: coins(l, { kinds: SMALL, goal: 17, given: [10, 5], tooBig: [10, 5] }), say: P.askLast[l], ask: ask(P.askLast[l], [5, 2, 1], 2, E.last[l]) },
       { scene: coins(l, { kinds: SMALL, goal: 17, given: [10, 5, 2] }), say: P.done[l] },
     ];
   },
@@ -946,7 +946,13 @@ const BACK_PRACTICE: Record<'start' | 'two' | 'askC' | 'cRed' | 'askD' | 'askBac
     'Новая карта, в ней 4 страны. Правило то же, порядок тот же: красный, зелёный, синий.',
   ),
   two: t('A gets red. B touches A, so B gets green.', 'A 涂红色。B 挨着 A，所以涂绿色。', 'A 塗紅色。B 和 A 相鄰，所以塗綠色。', 'A は赤。B は A のとなりだから緑。', 'A — красная. B касается A, поэтому B — зелёная.'),
-  askC: t('C touches only B. Which crayon does C get?', 'C 只挨着 B。C 会涂哪种颜色？', 'C 只和 B 相鄰。C 會塗哪種顏色？', 'C のとなりは B だけ。C は何色になる？', 'C касается только B. Какой цвет получит C?'),
+  askC: t(
+    'C touches B and D, but D has no color yet. Which crayon does C get?',
+    'C 挨着 B 和 D，不过 D 还没涂色。C 会涂哪种颜色？',
+    'C 和 B、D 相鄰，不過 D 還沒塗色。C 會塗哪種顏色？',
+    'C のとなりは B と D。でも D はまだ色がない。C は何色になる？',
+    'C касается B и D, но D ещё не раскрашена. Какой цвет получит C?',
+  ),
   cRed: t('C is red. Now it is D’s turn.', 'C 是红色。现在轮到 D 了。', 'C 是紅色。現在輪到 D 了。', 'C は赤。つぎは D の番。', 'C — красная. Теперь очередь D.'),
   askD: t(
     'D touches green B, red C and the blue lake. What happens?',
@@ -1382,7 +1388,8 @@ const dynamicProgramming: LessonContent = {
         'remember',
         Q.q1e[l],
       ),
-      { ...ask(Q.q2[l], [7, 8, 10], 8, Q.q2e[l]), scene: chain(l, { last: '?' }) },
+      // Not 7: a child could read 1, 2, 3, 5, 7 as the prime numbers.
+      { ...ask(Q.q2[l], [6, 8, 10], 8, Q.q2e[l]), scene: chain(l, { last: '?' }) },
       {
         ...pick(
           Q.q3[l],
@@ -1531,7 +1538,7 @@ const HANOI_STORY: Record<'intro' | 'rules' | 'split' | 'big' | 'last' | 'name',
   ),
 };
 
-const HANOI_PRACTICE: Record<'start' | 'askSmall' | 'small' | 'askBig' | 'done' | 'askThree' | 'three', T> = {
+const HANOI_PRACTICE: Record<'start' | 'askSmall' | 'small' | 'askBig' | 'big' | 'askLast' | 'done' | 'askThree' | 'three', T> = {
   start: t(
     "Let's solve a tower of 2 disks. Move it from rod A to rod C.",
     '我们来解 2 个圆盘的塔：把它从 A 柱搬到 C 柱。',
@@ -1548,12 +1555,20 @@ const HANOI_PRACTICE: Record<'start' | 'askSmall' | 'small' | 'askBig' | 'done' 
     'Маленький диск — на B. Теперь большой диск свободен.',
   ),
   askBig: t('Where does the big disk go?', '大圆盘放到哪里？', '大圓盤放到哪裡？', '大きい円盤はどこへ？', 'Куда пойдёт большой диск?'),
+  big: t(
+    'Big disk to C. That is 2 moves so far, and only the small disk is left.',
+    '大圆盘放到 C。到现在走了 2 步，只剩小圆盘了。',
+    '大圓盤放到 C。到現在走了 2 步，只剩小圓盤了。',
+    '大きい円盤を C へ。ここまで 2 回。のこりは小さい円盤だけ。',
+    'Большой диск — на C. Это уже 2 хода, остался только маленький диск.',
+  ),
+  askLast: t('Where does the small disk go now?', '现在小圆盘放到哪里？', '現在小圓盤放到哪裡？', 'こんどは小さい円盤をどこへ？', 'Куда теперь положить маленький диск?'),
   done: t(
-    'Big disk to C, then the small disk on top. Done in 3 moves!',
-    '大圆盘放到 C，再把小圆盘放上去。3 步完成！',
-    '大圓盤放到 C，再把小圓盤放上去。3 步完成！',
-    '大きい円盤を C へ、その上に小さい円盤。3 回でできた！',
-    'Большой диск — на C, сверху маленький. Готово за 3 хода!',
+    'Small disk on top of the big one. The tower is on C in 3 moves!',
+    '小圆盘放到大圆盘上面。3 步就把塔搬到了 C！',
+    '小圓盤放到大圓盤上面。3 步就把塔搬到了 C！',
+    '小さい円盤を大きい円盤の上へ。3 回で塔が C にうつった！',
+    'Маленький диск — сверху на большой. Башня на C за 3 хода!',
   ),
   askThree: t(
     '3 disks: move 2 disks (3 moves), then the big one (1 move), then 2 disks again (3 moves). How many moves?',
@@ -1571,7 +1586,7 @@ const HANOI_PRACTICE: Record<'start' | 'askSmall' | 'small' | 'askBig' | 'done' 
   ),
 };
 
-const HANOI_EXPLAIN: Record<'small' | 'big' | 'three', T> = {
+const HANOI_EXPLAIN: Record<'small' | 'big' | 'last' | 'three', T> = {
   small: t(
     'The big disk has to land on C, so the small disk waits on B.',
     '大圆盘最后要放在 C 上，所以小圆盘先到 B 上等着。',
@@ -1585,6 +1600,13 @@ const HANOI_EXPLAIN: Record<'small' | 'big' | 'three', T> = {
     'B 上有小圓盤，大的不能壓在小的上面，所以放到空著的 C。',
     'B には小さい円盤がある。大きいのは小さいのの上にのせられないから、空いている C へ。',
     'На B лежит маленький диск, а большой на маленький класть нельзя. Значит, на пустой C.',
+  ),
+  last: t(
+    'The whole tower must end up on C, so the small disk goes on top of the big one there.',
+    '整座塔最后要在 C 上，所以小圆盘要放到 C 上的大圆盘上面。',
+    '整座塔最後要在 C 上，所以小圓盤要放到 C 上的大圓盤上面。',
+    '塔はぜんぶ C にうつしたい。だから小さい円盤は、C の大きい円盤の上へ。',
+    'Вся башня должна оказаться на C, поэтому маленький диск кладём сверху на большой.',
   ),
   three: t('3 + 1 + 3 = 7 moves.', '3 + 1 + 3 = 7 步。', '3 + 1 + 3 = 7 步。', '3 + 1 + 3 = 7 回。', '3 + 1 + 3 = 7 ходов.'),
 };
@@ -1632,7 +1654,8 @@ const divideConquer: LessonContent = {
     const S = HANOI_STORY;
     return [
       { scene: hanoi(l, { rods: [[3, 2, 1], [], []] }), say: S.intro[l] },
-      { scene: hanoi(l, { rods: [[3, 2], [1], []], arc: [0, 1, 1], hot: 1 }), say: S.rules[l] },
+      // Only the top disk can move; no move is shown, so the next slide still starts from the full tower.
+      { scene: hanoi(l, { rods: [[3, 2, 1], [], []], hot: 1 }), say: S.rules[l] },
       { scene: hanoi(l, { rods: [[3], [2, 1], []], arc: [0, 1, 2] }), say: S.split[l] },
       { scene: hanoi(l, { rods: [[], [2, 1], [3]], arc: [0, 2, 1], hot: 3 }), say: S.big[l] },
       { scene: hanoi(l, { rods: [[], [], [3, 2, 1]], arc: [1, 2, 2] }), say: S.last[l] },
@@ -1647,6 +1670,20 @@ const divideConquer: LessonContent = {
       { scene: hanoi(l, { rods: [[2, 1], [], []], hot: 1, moves: 0 }), say: P.askSmall[l], ask: pick(P.askSmall[l], rodChoices, 'B', E.small[l]) },
       { scene: hanoi(l, { rods: [[2], [1], []], arc: [0, 1, 1], moves: 1 }), say: P.small[l] },
       { scene: hanoi(l, { rods: [[2], [1], []], hot: 2, moves: 1 }), say: P.askBig[l], ask: pick(P.askBig[l], rodChoices, 'C', E.big[l]) },
+      { scene: hanoi(l, { rods: [[], [1], [2]], arc: [0, 2, 1], moves: 2 }), say: P.big[l] },
+      {
+        scene: hanoi(l, { rods: [[], [1], [2]], hot: 1, moves: 2 }),
+        say: P.askLast[l],
+        ask: pick(
+          P.askLast[l],
+          [
+            ['A', 'A'],
+            ['C', 'C'],
+          ],
+          'C',
+          E.last[l],
+        ),
+      },
       { scene: hanoi(l, { rods: [[], [], [2, 1]], arc: [1, 2, 1], moves: 3 }), say: P.done[l] },
       { scene: hanoi(l, { rods: [[3, 2, 1], [], []], moves: 0 }), say: P.askThree[l], ask: ask(P.askThree[l], [6, 7, 9], 7, E.three[l]) },
       { scene: hanoi(l, { rods: [[], [], [3, 2, 1]], moves: 7 }), say: P.three[l] },

@@ -63,7 +63,7 @@ function plates(pile: Plate[], opts: { out?: Plate; incoming?: Plate; label?: st
       arrow('drop', [cx, 44], [cx, table - pile.length * (ph + 4) - 8], { tone: 'accent', dashed: true }),
     );
   }
-  if (opts.label) nodes.push(chip('label', W / 2, H - 36, opts.label, { sans: true, size: 15, tone: opts.labelTone ?? 'idle' }));
+  if (opts.label) nodes.push(chip('label', W / 2, 20, opts.label, { sans: true, size: 15, tone: opts.labelTone ?? 'idle' }));
   return { w: W, h: H, nodes };
 }
 
@@ -106,8 +106,9 @@ const STACK_STORY: Record<'pile' | 'push' | 'pop' | 'lifo' | 'undo', T> = {
   ),
 };
 
-const STACK_LABEL: Record<'lifo' | 'undo1' | 'undo2' | 'undo3', T> = {
+const STACK_LABEL: Record<'lifo' | 'undo' | 'undo1' | 'undo2' | 'undo3', T> = {
   lifo: t('last in, first out', '后进先出', '後進先出', '後入れ先出し', 'последним пришёл — первым ушёл'),
+  undo: t('Undo', '撤销', '復原', '元に戻す', 'Отменить'),
   undo1: t('draw a sun', '画太阳', '畫太陽', '太陽をかく', 'нарисовать солнце'),
   undo2: t('draw a tree', '画树', '畫樹', '木をかく', 'нарисовать дерево'),
   undo3: t('draw a cat', '画猫', '畫貓', 'ねこをかく', 'нарисовать кота'),
@@ -121,19 +122,26 @@ function undoScene(l: Locale): Scene {
     nodes.push(box(`act${k}`, 60, 186 - k * 46, a[l], { w: 220, h: 38, sans: true, size: 15, tone: k === 2 ? 'warn' : 'info', ring: k === 2 }));
   });
   nodes.push(
-    chip('undo', 368, 72, seg(['←', 'accent', true], ' Undo'), { sans: true, size: 16 }),
+    chip('undo', 368, 72, seg(['←', 'accent', true], ` ${STACK_LABEL.undo[l]}`), { sans: true, size: 16 }),
     arrow('undo:a', [368, 102], [286, 111], { bend: -10, tone: 'accent', width: 2.5 }),
   );
   return { w: W, h: H, nodes };
 }
 
-const STACK_PRACTICE: Record<'start' | 'push' | 'askPop' | 'popped' | 'askPop2' | 'askOldest', T> = {
+const STACK_PRACTICE: Record<'start' | 'push' | 'askPop' | 'popped' | 'push4' | 'askPop2' | 'askOldest', T> = {
   start: t('Our pile has two plates: 1 at the bottom and 2 on top.', '盘子堆里有两个盘子：1 在下面，2 在上面。', '盤子堆裡有兩個盤子：1 在下面，2 在上面。', 'お皿は 2 まい。下が 1、上が 2 だよ。', 'В стопке две тарелки: внизу 1, сверху 2.'),
   push: t('push(3): plate 3 goes on top.', 'push(3)：盘子 3 放到最上面。', 'push(3)：盤子 3 放到最上面。', 'push(3)：お皿 3 を上にのせる。', 'push(3): тарелка 3 ложится наверх.'),
   askPop: t('pop(): which plate comes off?', 'pop()：哪个盘子会被拿走？', 'pop()：哪個盤子會被拿走？', 'pop()：どのお皿が取られる？', 'pop(): какую тарелку снимут?'),
-  popped: t('Plate 3 came off. Now push(4) puts plate 4 on top.', '盘子 3 被拿走了。接着 push(4)，盘子 4 放到最上面。', '盤子 3 被拿走了。接著 push(4)，盤子 4 放到最上面。', 'お皿 3 が取られたよ。つぎに push(4) でお皿 4 を上にのせる。', 'Тарелку 3 сняли. Теперь push(4) кладёт тарелку 4 наверх.'),
+  popped: t('Plate 3 came off. Now plate 2 is on top again.', '盘子 3 被拿走了。现在 2 又在最上面了。', '盤子 3 被拿走了。現在 2 又在最上面了。', 'お皿 3 が取られたよ。また 2 がいちばん上になった。', 'Тарелку 3 сняли. Теперь сверху снова 2.'),
+  push4: t('push(4): plate 4 goes on top.', 'push(4)：盘子 4 放到最上面。', 'push(4)：盤子 4 放到最上面。', 'push(4)：お皿 4 を上にのせる。', 'push(4): тарелка 4 ложится наверх.'),
   askPop2: t('pop() again: which plate comes off now?', '再 pop() 一次：现在拿走哪个？', '再 pop() 一次：現在拿走哪個？', 'もう一度 pop()：こんどはどれ？', 'Снова pop(): какую снимут теперь?'),
-  askOldest: t('Which plate has been in the pile the longest?', '哪个盘子在这堆里待得最久？', '哪個盤子在這堆裡待得最久？', 'いちばん長く山にいるお皿はどれ？', 'Какая тарелка лежит в стопке дольше всех?'),
+  askOldest: t(
+    'Plate 4 came off. Which plate has been in the pile the longest?',
+    '盘子 4 被拿走了。哪个盘子在这堆里待得最久？',
+    '盤子 4 被拿走了。哪個盤子在這堆裡待得最久？',
+    'お皿 4 が取られたよ。いちばん長く山にいるお皿はどれ？',
+    'Тарелку 4 сняли. Какая тарелка лежит в стопке дольше всех?',
+  ),
 };
 
 const STACK_EXPLAIN: Record<'pop3' | 'pop4' | 'oldest', T> = {
@@ -150,8 +158,14 @@ const ask = (prompt: string, ids: number[], answer: number, explain: string): Ki
 });
 
 const STACK_QUIZ: Record<'q1' | 'q1e' | 'q2' | 'q2a' | 'q2b' | 'q2c' | 'q2e' | 'q3' | 'q3a' | 'q3b' | 'q3c' | 'q3e', T> = {
-  q1: t('You push 5, then 7, then 2. Then you pop once. What comes out?', '依次压入 5、7、2，然后弹出一次。出来的是哪个？', '依次壓入 5、7、2，然後彈出一次。出來的是哪個？', '5、7、2 の順にプッシュして、1 回ポップしたよ。出てくるのは？', 'Кладём 5, потом 7, потом 2. Снимаем один раз. Что снимется?'),
-  q1e: t('2 went in last, so it comes out first.', '2 最后进去，所以最先出来。', '2 最後進去，所以最先出來。', '2 が最後に入ったので、最初に出る。', '2 положили последней — её и снимут первой.'),
+  q1: t(
+    'You push 5, then 7, then 2 onto a stack. Then you pop once. What comes out?',
+    '依次把 5、7、2 压入栈，然后弹出一次。出来的是哪个？',
+    '依次把 5、7、2 壓入堆疊，然後彈出一次。出來的是哪個？',
+    'スタックに 5、7、2 の順にプッシュして、1 回ポップしたよ。出てくるのは？',
+    'Кладём в стек 5, потом 7, потом 2. Потом один раз снимаем. Что снимется?',
+  ),
+  q1e: t('2 went in last, so it comes out first.', '2 最后进去，所以最先出来。', '2 最後進去，所以最先出來。', '2 が最後に入ったので、最初に出る。', 'Число 2 положили последним — его и снимут первым.'),
   q2: t('Which of these works like a stack?', '下面哪个像栈一样工作？', '下面哪個像堆疊一樣運作？', 'スタックと同じしくみなのはどれ？', 'Что из этого работает как стек?'),
   q2a: t('A pile of books', '一摞书', '一疊書', '本の山', 'Стопка книг'),
   q2b: t('A line at the bus stop', '公交车站排的队', '公車站排的隊', 'バス停の行列', 'Очередь на остановке'),
@@ -182,15 +196,16 @@ const stack: LessonContent = {
       { scene: plates([{ n: 1 }, { n: 2 }]), say: P.start[l] },
       { scene: plates([{ n: 1 }, { n: 2 }, { n: 3, tone: 'accent', ring: true }]), say: P.push[l] },
       { scene: plates([{ n: 1 }, { n: 2 }, { n: 3 }]), say: P.askPop[l], ask: ask(P.askPop[l], [1, 2, 3], 3, E.pop3[l]) },
-      { scene: plates([{ n: 1 }, { n: 2 }, { n: 4, tone: 'accent', ring: true }]), say: P.popped[l] },
+      { scene: plates([{ n: 1 }, { n: 2 }], { out: { n: 3 } }), say: P.popped[l] },
+      { scene: plates([{ n: 1 }, { n: 2 }, { n: 4, tone: 'accent', ring: true }]), say: P.push4[l] },
       { scene: plates([{ n: 1 }, { n: 2 }, { n: 4 }]), say: P.askPop2[l], ask: ask(P.askPop2[l], [1, 2, 4], 4, E.pop4[l]) },
-      { scene: plates([{ n: 1 }, { n: 2 }]), say: P.askOldest[l], ask: ask(P.askOldest[l], [1, 2], 1, E.oldest[l]) },
+      { scene: plates([{ n: 1 }, { n: 2 }], { out: { n: 4 } }), say: P.askOldest[l], ask: ask(P.askOldest[l], [1, 2], 1, E.oldest[l]) },
     ];
   },
   quiz(l): KidQuestion[] {
     const Q = STACK_QUIZ;
     return [
-      { ...ask(Q.q1[l], [5, 7, 2], 2, Q.q1e[l]), scene: plates([{ n: 5, tone: 'info' }, { n: 7, tone: 'ok' }, { n: 2, tone: 'warn' }]) },
+      ask(Q.q1[l], [5, 7, 2], 2, Q.q1e[l]),
       {
         prompt: Q.q2[l],
         choices: [
@@ -370,25 +385,25 @@ const ARRAY_PRACTICE = {
     'Algo одним прыжком попадает в коробку 3. Там лежит 6.',
   ),
   askShift: t(
-    'Now 5 must go into box 1. How many numbers have to shift one step right?',
-    '现在要把 5 放进 1 号盒子。有几个数要往右挪一格？',
-    '現在要把 5 放進 1 號盒子。有幾個數要往右挪一格？',
-    'こんどは 5 を 1 番の箱に入れたい。右にずれる数はいくつ？',
-    'Теперь 5 нужно положить в коробку 1. Сколько чисел сдвинется на шаг вправо?',
+    'Now 7 must go into box 1. How many numbers have to shift one step right?',
+    '现在要把 7 放进 1 号盒子。有几个数要往右挪一格？',
+    '現在要把 7 放進 1 號盒子。有幾個數要往右挪一格？',
+    'こんどは 7 を 1 番の箱に入れたい。右にずれる数はいくつ？',
+    'Теперь 7 нужно положить в коробку 1. Сколько чисел сдвинется на шаг вправо?',
   ),
   shifted: t(
-    '8, 1, 6, 3 and 9 each moved one step right. Now 5 fits into box 1.',
-    '8、1、6、3、9 都往右挪了一格。现在 5 放进了 1 号盒子。',
-    '8、1、6、3、9 都往右挪了一格。現在 5 放進了 1 號盒子。',
-    '8、1、6、3、9 がひとつずつ右にずれた。これで 5 が 1 番に入ったよ。',
-    '8, 1, 6, 3 и 9 сдвинулись на шаг вправо. Теперь 5 в коробке 1.',
+    '8, 1, 6, 3 and 9 each moved one step right. Now 7 fits into box 1.',
+    '8、1、6、3、9 都往右挪了一格。现在 7 放进了 1 号盒子。',
+    '8、1、6、3、9 都往右挪了一格。現在 7 放進了 1 號盒子。',
+    '8、1、6、3、9 がひとつずつ右にずれた。これで 7 が 1 番に入ったよ。',
+    '8, 1, 6, 3 и 9 сдвинулись на шаг вправо. Теперь 7 в коробке 1.',
   ),
   askEnd: t(
-    'Which is quicker: adding a number at the end, or at the very start?',
-    '哪个更快：把数加在最后面，还是加在最前面？',
-    '哪個更快：把數加在最後面，還是加在最前面？',
-    'はやいのはどっち？数をいちばん後ろに足す？それともいちばん前？',
-    'Что быстрее: добавить число в конец или в самое начало?',
+    'Say we add one more empty box at the end. Which is quicker: putting a new number at the end, or at the very start?',
+    '假设在最后再加一个空盒子。哪个更快：把新数放在最后面，还是放在最前面？',
+    '假設在最後再加一個空盒子。哪個更快：把新數放在最後面，還是放在最前面？',
+    '後ろに空っぽの箱をひとつ足したとしよう。新しい数を入れるなら、はやいのはどっち？いちばん後ろ？それともいちばん前？',
+    'Допустим, в конце появилась ещё одна пустая коробка. Что быстрее: положить новое число в конец или в самое начало?',
   ),
   end: t('At the end', '加在最后面', '加在最後面', 'いちばん後ろ', 'В конец'),
   front: t('At the start', '加在最前面', '加在最前面', 'いちばん前', 'В начало'),
@@ -410,11 +425,11 @@ const ARRAY_EXPLAIN = {
     '8, 1, 6, 3 и 9 стоят в коробке 1 или дальше, поэтому сдвигаются все пять.',
   ),
   end: t(
-    'At the end, nobody has to move. At the start, every single number shifts.',
-    '加在最后面，谁都不用挪；加在最前面，每个数都得挪。',
-    '加在最後面，誰都不用挪；加在最前面，每個數都得挪。',
-    '後ろなら、だれも動かなくていい。前だと、全部の数がずれるんだ。',
-    'В конце никому не надо двигаться. А в начале сдвигается каждое число.',
+    'At the end, it goes straight into the empty box and nobody moves. At the start, all seven numbers must shift.',
+    '放在最后面，直接放进空盒子，谁都不用挪；放在最前面，七个数全都得挪。',
+    '放在最後面，直接放進空盒子，誰都不用挪；放在最前面，七個數全都得挪。',
+    '後ろなら、空っぽの箱にそのまま入れるだけで、だれも動かない。前だと、7 つの数が全部ずれるんだ。',
+    'В конце число сразу ложится в пустую коробку, и никто не двигается. А в начале сдвигаются все семь чисел.',
   ),
 };
 
@@ -456,7 +471,7 @@ const ARRAY_QUIZ = {
 
 const ROW = [7, 3, 9, 2, 5, 8, null];
 const ROW_PRACTICE = [4, 8, 1, 6, 3, 9, null];
-const ROW_SHIFTED = [4, 5, 8, 1, 6, 3, 9];
+const ROW_SHIFTED = [4, 7, 8, 1, 6, 3, 9];
 
 const array: LessonContent = {
   story(l): StorySlide[] {
@@ -480,10 +495,10 @@ const array: LessonContent = {
       { scene: boxRow(slots(ROW_PRACTICE)), say: P.start[l] },
       { scene: boxRow(slots(ROW_PRACTICE)), say: P.askBox[l], ask: ask(P.askBox[l], [1, 6, 3], 6, E.box3[l]) },
       { scene: boxRow(slots(ROW_PRACTICE), { point: { at: 3, label: BOX_NAME[l](3) } }), say: P.jumped[l] },
-      { scene: boxRow(slots(ROW_PRACTICE), { incoming: { v: 5, at: 1 } }), say: P.askShift[l], ask: ask(P.askShift[l], [1, 3, 5], 5, E.five[l]) },
-      { scene: boxRow(slots(ROW_SHIFTED, { 5: { tone: 'accent', ring: true } })), say: P.shifted[l] },
+      { scene: boxRow(slots(ROW_PRACTICE), { incoming: { v: 7, at: 1 } }), say: P.askShift[l], ask: ask(P.askShift[l], [1, 4, 5], 5, E.five[l]) },
+      { scene: boxRow(slots(ROW_SHIFTED, { 7: { tone: 'accent', ring: true } })), say: P.shifted[l] },
       {
-        scene: boxRow(slots(ROW_SHIFTED)),
+        scene: boxRow(slots([...ROW_SHIFTED, null])),
         say: P.askEnd[l],
         ask: choose(P.askEnd[l], [['end', P.end[l]], ['start', P.front[l]]], 'end', E.end[l]),
       },
@@ -706,25 +721,25 @@ const LL_QUIZ = {
   q2a: t('Adding a node in the middle', '在中间加一个节点', '在中間加一個節點', 'まん中にノードを足す', 'Добавить узел в середину'),
   q2b: t('Jumping straight to node 10', '直接跳到第 10 个节点', '直接跳到第 10 個節點', '10 番目のノードへ直接とぶ', 'Сразу прыгнуть к 10-му узлу'),
   q2e: t(
-    'Adding a node only changes a couple of arrows. Jumping is not possible: you must follow the arrows.',
-    '加节点只要改一两个箭头就行。跳过去可不行，必须顺着箭头走。',
-    '加節點只要改一兩個箭頭就行。跳過去可不行，必須順著箭頭走。',
-    'ノードを足すには矢印を 1、2 本変えるだけ。とぶのはむり。矢印をたどるしかないよ。',
-    'Чтобы добавить узел, хватит поменять пару стрелок. А прыгнуть нельзя — только идти по стрелкам.',
+    'Once you are at the right spot, adding a node only changes a couple of arrows. Jumping is not possible: you must follow the arrows.',
+    '走到要加的位置后，加节点只要改一两个箭头。直接跳过去可不行，必须顺着箭头走。',
+    '走到要加的位置後，加節點只要改一兩個箭頭。直接跳過去可不行，必須順著箭頭走。',
+    '足したい場所まで来たら、矢印を 1、2 本変えるだけ。とぶのはむり。矢印をたどるしかないよ。',
+    'Когда ты уже на нужном месте, добавить узел — это поменять пару стрелок. А прыгнуть нельзя — только идти по стрелкам.',
   ),
   q3: t(
-    'Start at head and follow the arrows. Which value do you reach third?',
-    '从 head 出发，顺着箭头走。第三个到达的是哪个值？',
-    '從 head 出發，順著箭頭走。第三個到達的是哪個值？',
-    'head からスタートして矢印をたどろう。3 番目に着く値は？',
-    'Начни с head и иди по стрелкам. Какое значение будет третьим?',
+    'Read the values starting at head and following the arrows. Which value is 3rd?',
+    '从 head 开始，顺着箭头读出每个值。第 3 个值是哪个？',
+    '從 head 開始，順著箭頭讀出每個值。第 3 個值是哪個？',
+    'head から矢印の順に値を読んでいこう。3 番目の値はどれ？',
+    'Читай значения, начиная с head и двигаясь по стрелкам. Какое значение третье?',
   ),
   q3e: t(
-    'Follow the arrows, not left to right: 5, then 2, then 8.',
-    '要顺着箭头走，而不是从左到右：先 5，再 2，然后是 8。',
-    '要順著箭頭走，而不是從左到右：先 5，再 2，然後是 8。',
-    '左から右じゃなく、矢印の順だよ。5、2、そして 8。',
-    'Идём по стрелкам, а не слева направо: 5, потом 2, потом 8.',
+    'Follow the arrows, not left to right: 5 is 1st, 2 is 2nd, and 8 is 3rd.',
+    '要顺着箭头读，而不是从左到右：第 1 个是 5，第 2 个是 2，第 3 个是 8。',
+    '要順著箭頭讀，而不是從左到右：第 1 個是 5，第 2 個是 2，第 3 個是 8。',
+    '左から右じゃなく、矢印の順だよ。1 番目が 5、2 番目が 2、3 番目が 8。',
+    'Идём по стрелкам, а не слева направо: первое — 5, второе — 2, третье — 8.',
   ),
 };
 
@@ -787,8 +802,11 @@ const QUEUE_LABEL = {
   printer: t('printer', '打印机', '印表機', 'プリンター', 'принтер'),
 };
 
-/** Kids with ticket numbers in a line, front on the left; `out` has just left, `incoming` is about to join. */
-function waitingLine(l: Locale, kids: number[], o: { ring?: number; out?: number; incoming?: number; label?: string } = {}): Scene {
+/**
+ * Kids with ticket numbers in a line, front on the left; `out` has just left, `incoming` is about to
+ * join at the back, `arriving` has just come and stands aside (no arrow, so the picture does not answer "where?").
+ */
+function waitingLine(l: Locale, kids: number[], o: { ring?: number; out?: number; incoming?: number; arriving?: number; label?: string } = {}): Scene {
   const r = 24;
   const kid = (n: number, x: number, y: number, extra: Look = {}) =>
     box(`kid${n}`, x - r, y - r, String(n), { w: 2 * r, h: 2 * r, shape: 'circle', size: 18, tone: PLATE_TONES[n % PLATE_TONES.length], ...extra });
@@ -800,6 +818,7 @@ function waitingLine(l: Locale, kids: number[], o: { ring?: number; out?: number
     const x = kidX(kids.length);
     nodes.push(kid(o.incoming, x, 46, { dashed: true, ring: true }), arrow('join', [x, 74], [x, KID_Y - r - 6], { tone: 'accent', dashed: true, width: 2 }));
   }
+  if (o.arriving !== undefined) nodes.push(kid(o.arriving, 400, 50, { dashed: true, ring: true }));
   if (o.label) nodes.push(caption(o.label, 'accent'));
   return { w: W, h: H, nodes };
 }
@@ -859,22 +878,29 @@ const QUEUE_PRACTICE = {
     '三个小朋友拿着 4、7、2 号票在排队，4 号站在最前面。',
     '三個小朋友拿著 4、7、2 號票在排隊，4 號站在最前面。',
     '4 番、7 番、2 番の札をもった 3 人がならんでいる。先頭は 4 番。',
-    'Трое ждут с билетами 4, 7 и 2. Впереди стоит билет 4.',
+    'Трое ребят ждут с билетами 4, 7 и 2. Впереди стоит номер 4.',
   ),
-  askJoin: t('Ticket 6 arrives. Where does 6 stand?', '6 号来了。6 号站在哪里？', '6 號來了。6 號站在哪裡？', '6 番が来たよ。6 番はどこにならぶ？', 'Пришёл билет 6. Куда он встанет?'),
+  askJoin: t('Ticket 6 arrives. Where does 6 stand?', '6 号来了。6 号站在哪里？', '6 號來了。6 號站在哪裡？', '6 番が来たよ。6 番はどこにならぶ？', 'Пришёл ребёнок с билетом 6. Куда он встанет?'),
   askLeave: t(
     '6 joined at the back. Now the shop serves one kid. Who leaves the line?',
     '6 号排到了最后。现在店里接待一个人，谁离开队伍？',
     '6 號排到了最後。現在店裡招呼一個人，誰離開隊伍？',
     '6 番は後ろにならんだ。お店がひとり分売るよ。列をはなれるのはだれ？',
-    'Билет 6 встал в конец. Теперь обслуживают одного. Кто уходит из очереди?',
+    'Номер 6 встал в конец. Теперь обслуживают одного. Кто уходит из очереди?',
   ),
   served: t(
-    '4 got served and left. Then ticket 9 joined at the back.',
-    '4 号买完离开了。接着 9 号排到了最后。',
-    '4 號買完離開了。接著 9 號排到了最後。',
-    '4 番は買いおわって列をはなれた。つぎに 9 番が後ろにならんだよ。',
-    'Билет 4 обслужили. Потом в конец встал билет 9.',
+    '4 got served and left. Everyone moved up one step.',
+    '4 号买完离开了，大家往前挪了一步。',
+    '4 號買完離開了，大家往前挪了一步。',
+    '4 番は買いおわって列をはなれた。みんなひとつ前へ進んだよ。',
+    'Номера 4 обслужили, и он ушёл. Все сделали шаг вперёд.',
+  ),
+  join9: t(
+    'Then ticket 9 arrives and joins at the back.',
+    '接着 9 号来了，排到了最后面。',
+    '接著 9 號來了，排到了最後面。',
+    'つぎに 9 番が来て、いちばん後ろにならんだよ。',
+    'Потом пришёл номер 9 и встал в конец.',
   ),
   askTwo: t(
     'Two more kids get served. Who is at the front after that?',
@@ -908,7 +934,7 @@ const QUEUE_EXPLAIN = {
     '4 号在最前面，所以先买、先离开。',
     '4 號在最前面，所以先買、先離開。',
     '4 番が先頭だから、最初に買って列をはなれる。',
-    'Билет 4 впереди, его обслуживают первым.',
+    'Номер 4 впереди, его обслуживают первым.',
   ),
   two: t(
     '7 and 2 are at the front, so they leave first. Then 6 is at the front.',
@@ -980,12 +1006,13 @@ const queue: LessonContent = {
     return [
       { scene: waitingLine(l, [4, 7, 2]), say: P.start[l] },
       {
-        scene: waitingLine(l, [4, 7, 2], { incoming: 6 }),
+        scene: waitingLine(l, [4, 7, 2], { arriving: 6 }),
         say: P.askJoin[l],
         ask: choose(P.askJoin[l], [['front', P.front[l]], ['middle', P.middle[l]], ['back', P.back[l]]], 'back', E.join[l]),
       },
       { scene: waitingLine(l, [4, 7, 2, 6], { ring: 6 }), say: P.askLeave[l], ask: ask(P.askLeave[l], [4, 7, 2, 6], 4, E.leave[l]) },
-      { scene: waitingLine(l, [7, 2, 6, 9], { out: 4, ring: 9 }), say: P.served[l] },
+      { scene: waitingLine(l, [7, 2, 6], { out: 4 }), say: P.served[l] },
+      { scene: waitingLine(l, [7, 2, 6, 9], { ring: 9 }), say: P.join9[l] },
       { scene: waitingLine(l, [7, 2, 6, 9]), say: P.askTwo[l], ask: ask(P.askTwo[l], [2, 6, 9], 6, E.two[l]) },
       { scene: waitingLine(l, [6, 9]), say: P.end[l] },
     ];
@@ -993,7 +1020,7 @@ const queue: LessonContent = {
   quiz(l): KidQuestion[] {
     const Q = QUEUE_QUIZ;
     return [
-      { ...ask(Q.q1[l], [1, 2, 3], 1, Q.q1e[l]), scene: waitingLine(l, [1, 2, 3]) },
+      ask(Q.q1[l], [1, 2, 3], 1, Q.q1e[l]),
       choose(Q.q2[l], [['slide', Q.q2a[l]], ['plates', Q.q2b[l]], ['lockers', Q.q2c[l]]], 'slide', Q.q2e[l]),
       choose(Q.q3[l], [['queue', Q.q3a[l]], ['stack', Q.q3b[l]]], 'queue', Q.q3e[l]),
     ];
@@ -1010,10 +1037,15 @@ const lockerX = (i: number) => cellX(12, i, LOCKER_W, 4);
  * Ten lockers 0–9 with their numbers above. `stored[i]` lists the keys in locker i: the first
  * shows in the locker, the others (collisions) hang below it. `rule` shows `key → locker` on top.
  */
-function lockers(stored: Record<number, number[]>, o: { rule?: { key: number; to?: number }; ring?: number[]; hot?: number; label?: string } = {}): Scene {
+/** `shut`: every locker is closed so its contents can't be seen, except the one numbered `shut.open`. */
+function lockers(
+  stored: Record<number, number[]>,
+  o: { rule?: { key: number; to?: number }; ring?: number[]; hot?: number; label?: string; shut?: { open?: number } } = {},
+): Scene {
   const nodes: SceneNode[] = [];
   for (let i = 0; i < 10; i++) {
-    const keys = stored[i] ?? [];
+    const closed = o.shut !== undefined && o.shut.open !== i;
+    const keys = closed ? [] : (stored[i] ?? []);
     const hot = o.hot === i;
     nodes.push(
       text(`li${i}`, lockerX(i) + LOCKER_W / 2, LOCKER_Y - 8, String(i), { anchor: 'middle', mono: true, size: 14, bold: hot, tone: hot ? 'accent' : 'muted' }),
@@ -1021,8 +1053,8 @@ function lockers(stored: Record<number, number[]>, o: { rule?: { key: number; to
         w: LOCKER_W,
         h: 46,
         size: 16,
-        tone: keys.length ? 'info' : 'ghost',
-        dashed: !keys.length,
+        tone: closed ? 'idle' : keys.length ? 'info' : 'ghost',
+        dashed: !closed && !keys.length,
         ring: hot || (keys.length > 0 && !!o.ring?.includes(keys[0])),
       }),
     );
@@ -1161,7 +1193,13 @@ const HASH_PRACTICE = {
     '衝突だ！14 番と 4 番がどちらもロッカー 4 になったから、いっしょに使うよ。',
     'Коллизия! 14 и 4 попали в шкафчик 4, и теперь делят его.',
   ),
-  ask19: t('Where do you look to find kid 19’s bag?', '要找 19 号的书包，该去哪个柜子？', '要找 19 號的書包，該去哪個櫃子？', '19 番のかばんをさがすには、どのロッカーを見る？', 'Где искать рюкзак номера 19?'),
+  ask19: t(
+    'Now all the lockers are shut, so you cannot peek inside. Which locker do you open to find kid 19’s bag?',
+    '现在柜子都关上了，看不到里面。要找 19 号的书包，该打开哪个柜子？',
+    '現在櫃子都關上了，看不到裡面。要找 19 號的書包，該打開哪個櫃子？',
+    'ロッカーはぜんぶしまっていて、中は見えない。19 番のかばんをさがすには、どのロッカーをあける？',
+    'Теперь все шкафчики закрыты, внутрь не заглянуть. Какой шкафчик открыть, чтобы найти рюкзак номера 19?',
+  ),
   found: t('Locker 9, and there it is! One look, no searching.', '9 号柜，找到了！看一眼就行，不用翻找。', '9 號櫃，找到了！看一眼就行，不用翻找。', 'ロッカー 9 に、あった！ひと目で見つかったね。', 'Шкафчик 9 — вот он! Один взгляд, никаких поисков.'),
 };
 
@@ -1249,8 +1287,8 @@ const hash_table: LessonContent = {
         ask: choose(P.ask14[l], [['share', P.share[l]], ['new', P.fresh[l]], ['kick', P.kick[l]]], 'share', E.e14[l]),
       },
       { scene: lockers({ ...STORED, 4: [4, 14] }, { ring: [14], hot: 4 }), say: P.shared[l] },
-      { scene: lockers({ ...STORED, 4: [4, 14] }, { rule: { key: 19 } }), say: P.ask19[l], ask: ask(P.ask19[l], [1, 4, 9], 9, E.e19[l]) },
-      { scene: lockers({ ...STORED, 4: [4, 14] }, { rule: { key: 19, to: 9 }, ring: [19] }), say: P.found[l] },
+      { scene: lockers({ ...STORED, 4: [4, 14] }, { rule: { key: 19 }, shut: {} }), say: P.ask19[l], ask: ask(P.ask19[l], [1, 4, 9], 9, E.e19[l]) },
+      { scene: lockers({ ...STORED, 4: [4, 14] }, { rule: { key: 19, to: 9 }, ring: [19], shut: { open: 9 } }), say: P.found[l] },
     ];
   },
   quiz(l): KidQuestion[] {
@@ -1510,7 +1548,7 @@ const tree: LessonContent = {
         ask: choose(P.askKids[l], [['14', '1, 4'], ['58', '5, 8'], ['79', '7, 9']], '14', E.kids[l]),
       },
       {
-        scene: treeScene(NUMS, { 3: { tone: 'accent', ring: true }, 1: leaf, 4: leaf }, (b) => [under('leftL', b.get('n1')!, L.left[l]), under('rightL', b.get('n4')!, L.right[l])], SMALL_TREE),
+        scene: treeScene(NUMS, { 3: { tone: 'accent', ring: true }, 1: { tone: 'info' }, 4: { tone: 'info' } }, (b) => [under('leftL', b.get('n1')!, L.left[l]), under('rightL', b.get('n4')!, L.right[l])], SMALL_TREE),
         say: P.kids[l],
       },
       { scene: treeScene(NUMS, {}, plain, SMALL_TREE), say: P.askLeaves[l], ask: ask(P.askLeaves[l], [2, 3, 4], 4, E.leaves[l]) },
@@ -1659,7 +1697,13 @@ const HEAP_EXPLAIN = {
 };
 
 const HEAP_QUIZ = {
-  q1: t('In this kind of heap, where is the biggest number?', '在这种堆里，最大的数在哪里？', '在這種堆積裡，最大的數在哪裡？', 'このヒープでは、いちばん大きい数はどこにいる？', 'Где в такой куче самое большое число?'),
+  q1: t(
+    'In a heap where every parent is bigger than its children, where is the biggest number?',
+    '在每个父节点都比子节点大的堆里，最大的数在哪里？',
+    '在每個父節點都比子節點大的堆積裡，最大的數在哪裡？',
+    'どの親も子どもより大きいヒープでは、いちばん大きい数はどこにいる？',
+    'Каждый родитель в куче больше своих детей. Где самое большое число?',
+  ),
   q1a: t('At the top', '在最上面', '在最上面', 'てっぺん', 'Наверху'),
   q1b: t('At the bottom', '在最下面', '在最下面', 'いちばん下', 'Внизу'),
   q1c: t('It could be anywhere', '哪里都有可能', '哪裡都有可能', 'どこにいるかわからない', 'Где угодно'),
@@ -1938,7 +1982,7 @@ const graph: LessonContent = {
         scene: graphScene(FRIENDS, FRIEND_LINES, {
           look: { Ana: { tone: 'accent', ring: true } },
           hot: ['Ana-Ben'],
-          nodes: [word('vertexL', 70, 46, GRAPH_LABEL.vertex[l]), word('edgeL', 138, 98, GRAPH_LABEL.edge[l])],
+          nodes: [word('vertexL', 70, 46, GRAPH_LABEL.vertex[l]), word('edgeL', 134, 54, GRAPH_LABEL.edge[l])],
         }),
         say: S.terms[l],
       },

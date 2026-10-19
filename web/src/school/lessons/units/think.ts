@@ -175,15 +175,18 @@ function dictScene(l: Locale, look: number | null, opts: { open?: number; keep?:
   return { w: W, h: H, nodes };
 }
 
-/** A tiny map: home, four crossroads, school, and the shortest way lit up. */
+/**
+ * A tiny map: home, four crossroads, school, and the shortest way lit up. The lower road dips
+ * further and spreads wider, so it is visibly longer than the lit one, not a mirror image of it.
+ */
 function mapScene(l: Locale): Scene {
   const home = box('home', 14, 108, ALGO_LABEL.home[l], { w: 96, h: 44, sans: true, size: 15, tone: 'info' });
   const school = box('school', 330, 108, ALGO_LABEL.school[l], { w: 96, h: 44, sans: true, size: 15, tone: 'ok' });
   const dot = (id: string, cx: number, cy: number, on: boolean) => box(id, cx - 13, cy - 13, '', { w: 26, h: 26, shape: 'circle', tone: on ? 'ok' : 'idle' });
-  const c1 = dot('c1', 170, 64, true);
-  const c2 = dot('c2', 170, 196, false);
-  const c3 = dot('c3', 270, 64, true);
-  const c4 = dot('c4', 270, 196, false);
+  const c1 = dot('c1', 180, 84, true);
+  const c2 = dot('c2', 150, 216, false);
+  const c3 = dot('c3', 260, 84, true);
+  const c4 = dot('c4', 290, 216, false);
   const road = (id: string, a: BoxNode, b: BoxNode, best = false) => link(id, a, b, { head: 'none', pad: 1, tone: best ? 'ok' : 'idle', width: best ? 4 : 2 });
   return {
     w: W,
@@ -202,7 +205,7 @@ function mapScene(l: Locale): Scene {
       c2,
       c3,
       c4,
-      text('best', 220, 38, ALGO_LABEL.shortest[l], { anchor: 'middle', size: 14, bold: true, tone: 'ok' }),
+      text('best', 220, 56, ALGO_LABEL.shortest[l], { anchor: 'middle', size: 14, bold: true, tone: 'ok' }),
     ],
   };
 }
@@ -259,7 +262,7 @@ const ALGO_STORY: Record<'recipe' | 'idea' | 'dict' | 'open' | 'discard' | 'foun
   ),
 };
 
-const ALGO_PRACTICE: Record<'mixed' | 'askFirst' | 'askNext' | 'done' | 'askHalf' | 'askMid' | 'foundIt', T> = {
+const ALGO_PRACTICE: Record<'mixed' | 'askFirst' | 'askSecond' | 'askNext' | 'done' | 'askHalf' | 'askMid' | 'foundIt', T> = {
   mixed: t(
     'Oh no, the recipe cards got mixed up! Let us put the steps back in order.',
     '糟糕，食谱卡片被打乱了！我们把步骤排回正确的顺序吧。',
@@ -268,13 +271,14 @@ const ALGO_PRACTICE: Record<'mixed' | 'askFirst' | 'askNext' | 'done' | 'askHalf
     'Ой, карточки рецепта перепутались! Давай разложим шаги по порядку.',
   ),
   askFirst: t('Which step comes first?', '哪一步是第一步？', '哪一步是第一步？', 'さいしょの手順はどれ？', 'Какой шаг первый?'),
+  askSecond: t('Bread is down. What comes second?', '面包放好了。第二步是什么？', '麵包放好了。第二步是什麼？', 'パンをおいたよ。2 番目は？', 'Хлеб положили. Какой шаг второй?'),
   askNext: t('Bread, then butter. What comes next?', '先放面包，再抹黄油。接下来是什么？', '先放麵包，再抹奶油。接下來是什麼？', 'パン、それからバター。つぎは？', 'Хлеб, потом масло. Что дальше?'),
   done: t(
-    'The recipe is in order again. Right steps in the right order: that is an algorithm!',
-    '食谱又排好了。正确的步骤，正确的顺序：这就是算法！',
-    '食譜又排好了。正確的步驟，正確的順序：這就是演算法！',
-    'カードがならんだね。正しい手順を正しいじゅんばんで：これがアルゴリズム！',
-    'Рецепт снова по порядку. Правильные шаги в правильном порядке — это и есть алгоритм!',
+    'The last card, "Put bread on top", goes to step 4. The recipe is in order again. Right steps in the right order: that is an algorithm!',
+    '最后一张卡片“盖上一片面包”放在第 4 步。食谱又排好了。正确的步骤，正确的顺序：这就是算法！',
+    '最後一張卡片「蓋上一片麵包」放在第 4 步。食譜又排好了。正確的步驟，正確的順序：這就是演算法！',
+    'のこった「パンをかぶせる」はステップ 4。カードがならんだね。正しい手順を正しいじゅんばんで：これがアルゴリズム！',
+    'Последняя карточка, «Накрой хлебом», — это шаг 4. Рецепт снова по порядку. Правильные шаги в правильном порядке — это и есть алгоритм!',
   ),
   askHalf: t(
     'Now find "dog" (it starts with D). Algo opens the middle: "kite" (K). Is "dog" before "kite" or after it?',
@@ -304,13 +308,20 @@ const ALGO_CHOICE: Record<'before' | 'after', T> = {
   after: t('After', '后面', '後面', '後ろ', 'После'),
 };
 
-const ALGO_EXPLAIN: Record<'first' | 'next' | 'half' | 'mid', T> = {
+const ALGO_EXPLAIN: Record<'first' | 'second' | 'next' | 'half' | 'mid', T> = {
   first: t(
     'You need a slice of bread before you can put anything on it.',
     '要先有面包，才能往上面放东西。',
     '要先有麵包，才能往上面放東西。',
     'まずパンがないと、なにものせられないよ。',
     'Сначала нужен хлеб — иначе не на что класть.',
+  ),
+  second: t(
+    'Butter is spread right on the bread, before anything else goes on top.',
+    '黄油要直接抹在面包上，然后才能放别的东西。',
+    '奶油要直接抹在麵包上，然後才能放別的東西。',
+    'バターはパンに直接ぬるよ。ほかのものをのせるのはそのあと。',
+    'Масло мажут прямо на хлеб — а уже потом кладут всё остальное.',
   ),
   next: t(
     'Cheese goes on the butter. The top slice comes last, or there would be nothing to cover.',
@@ -398,6 +409,11 @@ const algorithms: LessonContent = {
     return [
       { scene: sortScene(l, []), say: P.mixed[l] },
       { scene: sortScene(l, [], { asking: true }), say: P.askFirst[l], ask: pick(P.askFirst[l], MIXED.map(card), 'bread', E.first[l]) },
+      {
+        scene: sortScene(l, ['bread'], { asking: true }),
+        say: P.askSecond[l],
+        ask: pick(P.askSecond[l], [card('butter'), card('cheese'), card('top')], 'butter', E.second[l]),
+      },
       {
         scene: sortScene(l, ['bread', 'butter'], { asking: true }),
         say: P.askNext[l],
@@ -636,7 +652,7 @@ const LOOP_QUIZ: Record<'q1' | 'q1e' | 'q2' | 'q2e' | 'q3' | 'q3a' | 'q3b' | 'q3
     'A loop says: repeat 4 times, clap. How many claps do you hear?',
     '循环说：重复 4 次，拍手。你会听到几下拍手？',
     '迴圈說：重複 4 次，拍手。你會聽到幾下拍手？',
-    'ループに「4 回くりかえす：手をたたく」と書いた。手は何回なる？',
+    'ループに「4 回くりかえす：手をたたく」と書いた。手をたたく音は何回聞こえる？',
     'Цикл: повтори 4 раза — хлопок. Сколько хлопков ты услышишь?',
   ),
   q1e: t(
@@ -813,7 +829,7 @@ const REC_STORY: Record<'dolls' | 'idea' | 'stop' | 'back' | 'folders', T> = {
     'Opening a doll is the same job each time, just smaller. Solving a problem with a smaller copy of itself is called recursion.',
     '每次打开娃娃都是同一件事，只是娃娃变小了。用更小的同类问题来解决问题，就叫递归。',
     '每次打開娃娃都是同一件事，只是娃娃變小了。用更小的同類問題來解決問題，就叫遞迴。',
-    'にんぎょうを開けるのは、まいかい同じしごと。小さくなるだけ。小さい同じもんだいを使ってとくことを「再帰」というよ。',
+    'にんぎょうを開けるのは、まいかい同じしごと。小さくなるだけ。小さい同じもんだいを使ってとくことを「再帰（さいき）」というよ。',
     'Открыть матрёшку — каждый раз то же самое, только меньше. Решать задачу через её уменьшенную копию — это рекурсия.',
   ),
   stop: t(
@@ -1202,11 +1218,11 @@ const SPEED_STORY: Record<'ways' | 'scan' | 'halve' | 'pairs' | 'grow' | 'big', 
     'Чем больше предметов, тем больше шагов. «Пополам» почти не растёт, «по одному» растёт ровно, а «все пары» взлетают!',
   ),
   big: t(
-    'That is why programmers count steps. Among 1000 names, one by one can take 1000 looks. Halving needs only 10!',
-    '所以程序员很在意步数。在 1000 个名字里找，一个一个找可能要 1000 次，对半分只要 10 次！',
-    '所以程式設計師很在意步數。在 1000 個名字裡找，一個一個找可能要 1000 次，對半分只要 10 次！',
-    'だからプログラマーはステップを数えるんだ。1000 人の名前からさがすと、ひとつずつなら 1000 回、はんぶんにするなら 10 回だけ！',
-    'Поэтому программисты считают шаги. Среди 1000 имён поиск по одному может занять 1000 шагов, а пополам — всего 10!',
+    'That is why programmers count steps. Among 1000 names in ABC order, one by one can take 1000 looks. Halving needs only 10!',
+    '所以程序员很在意步数。在按顺序排好的 1000 个名字里找，一个一个找可能要 1000 次，对半分只要 10 次！',
+    '所以程式設計師很在意步數。在按順序排好的 1000 個名字裡找，一個一個找可能要 1000 次，對半分只要 10 次！',
+    'だからプログラマーはステップを数えるんだ。じゅんばんにならんだ 1000 人の名前からさがすと、ひとつずつなら 1000 回、はんぶんにするなら 10 回だけ！',
+    'Поэтому программисты считают шаги. Среди 1000 имён по алфавиту поиск по одному может занять 1000 шагов, а пополам — всего 10!',
   ),
 };
 
@@ -1305,11 +1321,11 @@ const SPEED_QUIZ: Record<'q1' | 'q1e' | 'q2' | 'q2e' | 'q3' | 'q3e', T> = {
     'Делим 16 карточек пополам: 16 → 8 → 4 → 2 → 1. Сколько это шагов?',
   ),
   q3e: t(
-    'Count the arrows: 4 halvings. Twice the cards added just 1 step.',
-    '数数箭头：分了 4 次。卡片多了一倍，只多了 1 步。',
-    '數數箭頭：分了 4 次。卡片多了一倍，只多了 1 步。',
-    'やじるしを数えると 4 回。カードが 2 ばいでも、ふえたのは 1 ステップだけ。',
-    'Считаем стрелки: 4 раза. Карточек вдвое больше, а шаг добавился всего один.',
+    'Count the arrows: 4 halvings. 8 cards took 3, so twice the cards added just 1 step.',
+    '数数箭头：分了 4 次。8 张卡片要 3 次，卡片多了一倍，只多了 1 步。',
+    '數數箭頭：分了 4 次。8 張卡片要 3 次，卡片多了一倍，只多了 1 步。',
+    'やじるしを数えると 4 回。8 まいなら 3 回だった。カードが 2 ばいでも、ふえたのは 1 ステップだけ。',
+    'Считаем стрелки: 4 раза. Для 8 карточек было 3 — карточек вдвое больше, а шаг добавился всего один.',
   ),
 };
 
