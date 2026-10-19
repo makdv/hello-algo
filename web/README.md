@@ -11,6 +11,27 @@ Rspress 2 with interactive, trace-driven visualizers.
 > not endorsed by the original authors, and is shared under the same license. The official site is
 > [hello-algo.com](https://www.hello-algo.com). Every page of the built site carries this credit in its footer.
 
+![Home page: the book's contents next to a live bubble sort player](screenshots/home.png)
+
+<table>
+  <tr>
+    <td width="50%"><img src="screenshots/player.png" alt="Bubble sort player in the dark palette"></td>
+    <td width="50%"><img src="screenshots/figure.png" alt="Redrawn breadth-first search figure in the mint palette"></td>
+  </tr>
+  <tr>
+    <td>The algorithm player: every step tied to a line of code and narrated (Lavender dark).</td>
+    <td>A redrawn book figure, played step by step (Mint).</td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/school-story.png" alt="School lesson story slide about searching a dictionary"></td>
+    <td><img src="screenshots/school-try.png" alt="School Try it step: putting the sandwich recipe in order"></td>
+  </tr>
+  <tr>
+    <td>The School: Algo the robot tells the story of each idea.</td>
+    <td>Then the child tries it and earns stars.</td>
+  </tr>
+</table>
+
 Uses [Bun](https://bun.sh) for packages and scripts and [Rstest](https://rstest.rs) for tests.
 
 ```bash
@@ -113,7 +134,11 @@ To add an algorithm: write its trace and spec, add it to the registry, map its f
 
 The School (`/school/`) teaches the book to 8–12 year olds in 24 lessons across four units:
 thinking like a computer, ways to keep data, finding and sorting, and clever ways to solve
-puzzles. Every lesson has three parts:
+puzzles.
+
+![The School map: 24 lessons in four units, with stars earned so far](screenshots/school-map.png)
+
+Every lesson has three parts:
 
 1. **Story**: Algo the robot explains the idea with an everyday picture (plates for a
    stack, a line for a queue), slide by slide.
