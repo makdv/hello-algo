@@ -17,6 +17,3 @@ export const PLAYER_PLACEMENTS: PlayerPlacement[] = [
   { page: 'chapter_sorting/merge_sort.md', image: 'merge_sort_step1.png', algorithm: 'merge_sort' },
   { page: 'chapter_searching/binary_search.md', image: 'binary_search_step1.png', algorithm: 'binary_search' },
 ];
-
-/** The School view's levels, in order; ids match web/src/algorithms/registry.ts. */
-export const SCHOOL_LEVELS = ['bubble_sort', 'selection_sort', 'insertion_sort', 'binary_search', 'quick_sort', 'merge_sort'];

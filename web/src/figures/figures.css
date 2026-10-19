@@ -1,0 +1,275 @@
+/* Redrawn book figures: tones, SVG scene nodes and the figure frame. Colors come from theme tokens. */
+
+.ha-t--idle { --f-bg: var(--ha-cell); --f-fg: var(--ha-on-cell); --f-line: var(--ha-cell-line); --f-ink: var(--ha-text); }
+.ha-t--accent { --f-bg: var(--ha-cmp); --f-fg: var(--ha-on-cmp); --f-line: var(--ha-cmp-line); --f-ink: var(--ha-accent); }
+.ha-t--warn { --f-bg: var(--ha-swp); --f-fg: var(--ha-on-swp); --f-line: var(--ha-swp-line); --f-ink: var(--ha-tk-num); }
+.ha-t--ok { --f-bg: var(--ha-done); --f-fg: var(--ha-on-done); --f-line: var(--ha-done-line); --f-ink: var(--ha-done-line); }
+.ha-t--info {
+  --f-bg: color-mix(in srgb, var(--ha-tk-fn) 16%, var(--ha-cell));
+  --f-fg: var(--ha-text);
+  --f-line: var(--ha-tk-fn);
+  --f-ink: var(--ha-tk-fn);
+}
+.ha-t--danger {
+  --f-bg: color-mix(in srgb, #e5484d 18%, var(--ha-cell));
+  --f-fg: var(--ha-text);
+  --f-line: #e5484d;
+  --f-ink: #e5484d;
+}
+.ha-t--muted { --f-bg: var(--ha-surface-2); --f-fg: var(--ha-muted); --f-line: var(--ha-border); --f-ink: var(--ha-muted); }
+.ha-t--ghost { --f-bg: transparent; --f-fg: var(--ha-muted); --f-line: var(--ha-cell-line); --f-ink: var(--ha-muted); }
+.ha-t--soft { --f-bg: var(--ha-soft); --f-fg: var(--ha-on-soft); --f-line: var(--ha-accent); --f-ink: var(--ha-muted); }
+
+/* Text runs inside labels. */
+.ha-ink--idle { fill: var(--ha-text); }
+.ha-ink--accent { fill: var(--ha-accent); }
+.ha-ink--warn { fill: var(--ha-tk-num); }
+.ha-ink--ok { fill: var(--ha-done-line); }
+.ha-ink--info { fill: var(--ha-tk-fn); }
+.ha-ink--danger { fill: #e5484d; }
+.ha-ink--muted,
+.ha-ink--ghost,
+.ha-ink--soft { fill: var(--ha-muted); }
+
+.ha-scene {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.ha-sn {
+  transition:
+    transform 0.45s cubic-bezier(0.3, 0.7, 0.3, 1),
+    opacity 0.35s ease;
+  animation: ha-sn-in 0.35s ease both;
+}
+
+.ha-sn.is-dim { opacity: 0.32; }
+.ha-sn.is-leaving { opacity: 0; pointer-events: none; }
+
+@keyframes ha-sn-in {
+  from { opacity: 0; }
+}
+
+.ha-scene text { white-space: pre; }
+
+.ha-sn__mono { font-family: var(--ha-font-mono); font-weight: 500; }
+.ha-sn__sans { font-family: var(--ha-font-sans); }
+.ha-sn__bold { font-weight: 700; }
+
+/* Boxes: cells, list nodes, chips. */
+.ha-sn--box .ha-sn__shape {
+  fill: var(--f-bg);
+  stroke: var(--f-line);
+  stroke-width: 1.5;
+  transition: fill 0.3s, stroke 0.3s;
+}
+
+.ha-sn--box.is-dashed .ha-sn__shape { stroke-dasharray: 4 3; }
+.ha-sn--box text { fill: var(--f-fg); transition: fill 0.3s; }
+
+.ha-sn--circle .ha-sn__shape { stroke-width: 2; }
+
+.ha-sn--chip.ha-t--idle .ha-sn__shape { fill: var(--ha-surface-2); stroke: var(--ha-border); }
+.ha-sn--chip.ha-t--idle text { fill: var(--ha-text); }
+
+.ha-sn__ring {
+  fill: none;
+  stroke: var(--f-line);
+  stroke-width: 2;
+  opacity: 0.45;
+}
+
+/* Free text. */
+.ha-sn--text text { fill: var(--ha-text); }
+.ha-sn--text.ha-t--accent text,
+.ha-sn--text.ha-t--warn text,
+.ha-sn--text.ha-t--ok text,
+.ha-sn--text.ha-t--info text,
+.ha-sn--text.ha-t--danger text,
+.ha-sn--text.ha-t--muted text,
+.ha-sn--text.ha-t--ghost text,
+.ha-sn--text.ha-t--soft text { fill: var(--f-ink); }
+
+/* Arrows: the default tone is a neutral gray. */
+.ha-sn--arrow { --f-arrow: var(--ha-muted); }
+.ha-sn--arrow.ha-t--accent,
+.ha-sn--arrow.ha-t--warn,
+.ha-sn--arrow.ha-t--ok,
+.ha-sn--arrow.ha-t--info,
+.ha-sn--arrow.ha-t--danger { --f-arrow: var(--f-ink); }
+.ha-sn--arrow.ha-t--muted { --f-arrow: var(--ha-cell-line); }
+
+.ha-sn__line {
+  fill: none;
+  stroke: var(--f-arrow);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: d 0.45s cubic-bezier(0.3, 0.7, 0.3, 1), stroke 0.3s;
+}
+
+.ha-sn--arrow.is-dashed .ha-sn__line { stroke-dasharray: 5 4; }
+
+.ha-sn__head {
+  fill: var(--f-arrow);
+  transition: transform 0.45s cubic-bezier(0.3, 0.7, 0.3, 1), fill 0.3s;
+}
+
+/* Regions: tinted panels. */
+.ha-sn--region .ha-sn__shape {
+  fill: color-mix(in srgb, var(--f-line) 7%, transparent);
+  stroke: color-mix(in srgb, var(--f-line) 32%, transparent);
+  stroke-width: 1.25;
+}
+
+.ha-sn--region.ha-t--idle .ha-sn__shape { fill: var(--ha-surface-2); stroke: var(--ha-border); }
+.ha-sn__label { fill: var(--f-ink); }
+.ha-sn--region.ha-t--idle .ha-sn__label { fill: var(--ha-muted); }
+
+/* Paths: outlines, or filled shapes with a label. */
+.ha-sn--path .ha-sn__shape {
+  fill: none;
+  stroke: var(--f-line);
+  stroke-width: 1.5;
+}
+
+.ha-sn--path .ha-sn__shape { stroke-linecap: round; stroke-linejoin: round; transition: d 0.45s cubic-bezier(0.3, 0.7, 0.3, 1); }
+.ha-sn--path.is-filled .ha-sn__shape { fill: var(--f-bg); }
+.ha-sn--path.is-dashed .ha-sn__shape { stroke-dasharray: 5 4; }
+.ha-sn__on { fill: var(--f-fg); font-weight: 600; }
+
+/* Icons: line drawings. */
+.ha-sn--icon {
+  fill: none;
+  stroke: var(--f-ink);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ha-sn,
+  .ha-sn__line,
+  .ha-sn__head,
+  .ha-sn--box .ha-sn__shape { transition: none; animation: none; }
+}
+
+/* Figure frame. */
+.ha-fig {
+  margin: 24px 0;
+}
+
+.ha-fig__frame {
+  border: 1px solid var(--ha-border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--ha-surface);
+  color: var(--ha-text);
+}
+
+.ha-fig__stage {
+  padding: 24px 16px;
+  container-type: inline-size;
+}
+
+.ha-fig__foot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--ha-border);
+}
+
+.ha-fig__note {
+  margin: 0 !important;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ha-muted);
+}
+
+.ha-fig__bar .ha-legend { margin-left: auto; }
+
+.ha-fig__placeholder {
+  min-height: 260px;
+  display: grid;
+  place-items: center;
+  color: var(--ha-muted);
+  font-size: 14px;
+}
+
+.ha-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
+  font-size: 13px;
+  color: var(--ha-muted);
+}
+
+.ha-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 !important;
+}
+
+.ha-legend__swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background: var(--f-bg);
+  border: 1.5px solid var(--f-line);
+}
+
+.ha-legend__swatch.is-dashed { border-style: dashed; }
+.ha-legend__swatch--circle { border-radius: 50%; }
+
+.ha-legend__swatch--line {
+  height: 0;
+  border: 0;
+  border-top: 2px solid var(--f-ink);
+  border-radius: 0;
+}
+
+/* Reference tables (e.g. ASCII). */
+.ha-fig__tables {
+  display: grid;
+  /* As many tables side by side as fit; each needs room for its widest row. */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr));
+  gap: 12px;
+  padding: 12px;
+  overflow-x: auto;
+  /* Long tables scroll inside the figure instead of stretching the page. */
+  max-height: 560px;
+  overflow-y: auto;
+}
+
+.ha-fig__table {
+  width: 100%;
+  margin: 0 !important;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  line-height: 1.35;
+  display: table !important;
+}
+
+.ha-fig__table th,
+.ha-fig__table td {
+  padding: 3px 8px !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--ha-border) !important;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.ha-fig__table th { color: var(--ha-muted); font-weight: 600; background: var(--ha-surface-2); position: sticky; top: -12px; }
+.ha-fig__table tr:nth-child(2n) td { background: color-mix(in srgb, var(--ha-surface-2) 50%, transparent); }
+.ha-fig__table .is-mono { font-family: var(--ha-font-mono); }
+
+@media (max-width: 640px) {
+  .ha-fig__stage { padding: 14px 2px; }
+}

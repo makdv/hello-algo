@@ -14,6 +14,7 @@ import { extractSnippet, LANG_INFO, parseSnippetRef, SNIPPET_LANGS, type Snippet
  *   becomes a <StepFrames> figure.
  * - `<!-- ha:player id :: caption -->` (a step figure with an interactive replacement)
  *   becomes an <AlgoFigure> player.
+ * - `<!-- ha:figure chapter/id :: caption -->` (a book figure redrawn in src/figures) becomes <Fig>.
  */
 
 interface Options {
@@ -137,6 +138,12 @@ export function remarkHelloAlgo(options: Options) {
         if (player) {
           // The converter's marker for a step figure replaced by an interactive player.
           children[i] = jsx('AlgoFigure', player[2] ? { algorithm: player[1], caption: player[2] } : { algorithm: player[1] }, []);
+          continue;
+        }
+        const figure = node.type === 'html' ? node.value?.trim().match(/^<!-- ha:figure (\S+) :: ([\s\S]*?) -->$/) : null;
+        if (figure) {
+          // A book figure redrawn as a live diagram (src/figures).
+          children[i] = jsx('Fig', figure[2] ? { id: figure[1], caption: figure[2] } : { id: figure[1] }, []);
           continue;
         }
         if (node.type === 'math') {

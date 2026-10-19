@@ -1,15 +1,18 @@
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
-import { ALGORITHMS, type AlgorithmMeta } from '../algorithms/registry';
+import { LESSONS } from './lessons/catalog';
 import { usePlayer } from '../engine/usePlayer';
 import { usePredict } from '../engine/usePredict';
 import type { AlgorithmSpec, ArrayFrame, Mark } from '../engine/types';
 import { type Locale, pick, prefixOf } from '../i18n/locale';
 import { ui } from '../i18n/ui';
+import { lessonText } from './text';
 import './school.css';
 
 const BUBBLE_COLORS = ['#E3E7EE', '#FF9FB2', '#FFC857', '#7FD1FF', '#B69CFF', '#7EE0A1', '#FFA36C', '#9EE6E0', '#F7A8E0', '#C9E86B'];
 const SKY_KEY = 'ha-school-sky';
 const starsKey = (id: string) => `ha-school-stars:${id}`;
+const doneKey = (id: string) => `ha-school-done:${id}`;
+const PROGRESS_EVENT = 'ha-school-progress';
 
 type Sky = 'day' | 'night';
 
@@ -20,6 +23,51 @@ export function readStars(id: string): number {
   } catch {
     return 0;
   }
+}
+
+/** Adds stars to a lesson's total and tells the header to refresh. */
+export function addStars(id: string, n = 1): number {
+  const next = readStars(id) + n;
+  try {
+    localStorage.setItem(starsKey(id), String(next));
+  } catch {
+    // Storage unavailable: the star still shows for this visit.
+  }
+  window.dispatchEvent(new Event(PROGRESS_EVENT));
+  return next;
+}
+
+export function readDone(id: string): boolean {
+  try {
+    return localStorage.getItem(doneKey(id)) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function markDone(id: string) {
+  try {
+    localStorage.setItem(doneKey(id), '1');
+  } catch {
+    // Ignore.
+  }
+  window.dispatchEvent(new Event(PROGRESS_EVENT));
+}
+
+/** Lessons done and stars earned, kept in sync with the rest of the page. */
+export function useProgress() {
+  const [state, setState] = useState({ done: 0, stars: 0 });
+  useEffect(() => {
+    const read = () =>
+      setState({
+        done: LESSONS.filter((l) => readDone(l.id)).length,
+        stars: LESSONS.reduce((sum, l) => sum + readStars(l.id), 0),
+      });
+    read();
+    window.addEventListener(PROGRESS_EVENT, read);
+    return () => window.removeEventListener(PROGRESS_EVENT, read);
+  }, []);
+  return state;
 }
 
 function useSky(): [Sky, () => void] {
@@ -43,27 +91,13 @@ function useSky(): [Sky, () => void] {
   return [sky, toggle];
 }
 
-/** Header shared by the hub and every level: logo, level map, stars, sky and the grown-up view. */
-export function SchoolShell({
-  locale,
-  current,
-  stars,
-  grownUpHref,
-  children,
-}: {
-  locale: Locale;
-  current?: string;
-  stars?: number;
-  grownUpHref: string;
-  children: ReactNode;
-}) {
+/** Header shared by the hub and every lesson: logo, map, progress, stars, sky and the grown-up view. */
+export function SchoolShell({ locale, grownUpHref, children }: { locale: Locale; grownUpHref: string; children: ReactNode }) {
   const t = ui(locale).school;
+  const lt = lessonText(locale);
   const prefix = prefixOf(locale);
   const [sky, toggleSky] = useSky();
-  const [earned, setEarned] = useState<Record<string, number>>({});
-  useEffect(() => {
-    setEarned(Object.fromEntries(ALGORITHMS.map((a) => [a.id, readStars(a.id)])));
-  }, [stars]);
+  const progress = useProgress();
 
   return (
     <div className={`hs hs--${sky}`}>
@@ -76,28 +110,25 @@ export function SchoolShell({
           hello algo
           <span className="hs-badge">{t.badge}</span>
         </a>
-        <nav className="hs-levels" aria-label={t.levels}>
-          {ALGORITHMS.map((a) => (
-            <a
-              key={a.id}
-              href={`${prefix}/school/${a.id}`}
-              aria-label={`${t.level(a.level)}: ${pick(a.title, locale)}`}
-              aria-current={a.id === current ? 'page' : undefined}
-              className={`hs-levels__dot${a.id === current ? ' is-current' : earned[a.id] ? ' is-done' : ''}`}
-            >
-              {a.level}
-            </a>
-          ))}
-        </nav>
+        <a className="hs-pill hs-pill--button" href={`${prefix}/school/`}>
+          {lt.map}
+        </a>
+        <span className="hs-pill hs-progress" title={lt.progress(progress.done, LESSONS.length)}>
+          <span className="hs-progress__bar" aria-hidden="true">
+            <span style={{ width: `${(100 * progress.done) / LESSONS.length}%` }} />
+          </span>
+          {progress.done}/{LESSONS.length}
+        </span>
         <div className="hs-header__right">
-          {stars !== undefined && (
-            <div className="hs-pill" aria-label={t.stars(stars)}>
-              <span className="hs-star" aria-hidden="true" />
-              {stars}
-            </div>
-          )}
-          <button type="button" className="hs-pill hs-pill--button" onClick={toggleSky}>
-            {sky === 'day' ? t.nightSky : t.sunnyDay}
+          <div className="hs-pill" aria-label={t.stars(progress.stars)}>
+            <span className="hs-star" aria-hidden="true" />
+            {progress.stars}
+          </div>
+          <button type="button" className="hs-pill hs-pill--button" onClick={toggleSky} aria-label={sky === 'day' ? t.nightSky : t.sunnyDay}>
+            <span className="hs-pill__icon" aria-hidden="true">
+              {sky === 'day' ? '☾' : '☀'}
+            </span>
+            <span className="hs-pill__text">{sky === 'day' ? t.nightSky : t.sunnyDay}</span>
           </button>
           <a className="hs-pill hs-pill--dashed" href={grownUpHref}>
             {t.grownUp}
@@ -172,30 +203,34 @@ export function RobotSays({ who, text }: { who: string; text: string }) {
   );
 }
 
-/** The cartoon School view for one algorithm: bubbles, Algo the robot guide, and stars for correct guesses. */
-export function SchoolPlayer<F extends ArrayFrame>({ spec, meta, locale }: { spec: AlgorithmSpec<F>; meta: AlgorithmMeta; locale: Locale }) {
+/**
+ * The bubble game for one algorithm: Algo asks what happens next at every decision, and each
+ * right guess earns a star for the lesson. Used as the "Try it" part of algorithm lessons.
+ */
+export function AlgorithmGame<F extends ArrayFrame>({
+  spec,
+  lessonId,
+  locale,
+  onQuiz,
+}: {
+  spec: AlgorithmSpec<F>;
+  lessonId: string;
+  locale: Locale;
+  /** Shown as a button once the game reaches its end. */
+  onQuiz?: () => void;
+}) {
   const t = ui(locale).school;
   const frames = useMemo(() => spec.trace(spec.defaultInput, spec.param?.default), [spec]);
   const player = usePlayer(frames);
   const [guessing, setGuessing] = useState(true);
   const predict = usePredict(spec, player, guessing, 'kid', locale);
-  const [stars, setStars] = useState(0);
   const [peek, setPeek] = useState(false);
-
-  useEffect(() => setStars(readStars(spec.id)), [spec.id]);
+  const lt = lessonText(locale);
 
   const answer = (choiceId: string) => {
     const right = choiceId === predict.question?.answer;
     predict.answer(choiceId);
-    if (right) {
-      const next = stars + 1;
-      setStars(next);
-      try {
-        localStorage.setItem(starsKey(spec.id), String(next));
-      } catch {
-        // Ignore.
-      }
-    }
+    if (right) addStars(lessonId);
   };
 
   const f = player.frame;
@@ -214,18 +249,13 @@ export function SchoolPlayer<F extends ArrayFrame>({ spec, meta, locale }: { spe
 
   const last = player.cur >= player.last;
   const title = pick(spec.title, locale);
+
   // Long arrays get smaller bubbles so they fit the scene.
   const fit = Math.min(1, 7 / Math.max(n, 1));
 
   return (
-    <SchoolShell locale={locale} current={spec.id} stars={stars} grownUpHref={`${prefixOf(locale)}/${meta.page}`}>
-      <main className="hs-main">
+      <div className="hs-main hs-main--embedded">
         <div className="hs-main__story">
-          <div className="hs-title">
-            <h1>{title}</h1>
-            <span>{t.level(meta.level)}</span>
-          </div>
-
           <section className="hs-scene" aria-label={title}>
             <span className="hs-scene__glow" aria-hidden="true" />
             <span className="hs-sun" aria-hidden="true" />
@@ -278,6 +308,11 @@ export function SchoolPlayer<F extends ArrayFrame>({ spec, meta, locale }: { spe
               <button type="button" className="hs-big hs-big--go" onClick={last ? player.restart : player.next}>
                 {last ? t.playAgain : t.next}
               </button>
+              {last && onQuiz && (
+                <button type="button" className="hs-big hs-big--next" onClick={onQuiz}>
+                  {lt.toQuiz}
+                </button>
+              )}
             </div>
           )}
           <label className="hs-check">
@@ -312,7 +347,6 @@ export function SchoolPlayer<F extends ArrayFrame>({ spec, meta, locale }: { spe
           </button>
           {peek && <pre className="hs-code">{spec.school.peek}</pre>}
         </aside>
-      </main>
-    </SchoolShell>
+      </div>
   );
 }
