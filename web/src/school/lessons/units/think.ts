@@ -47,7 +47,7 @@ const RECIPE: RecipeStep[] = ['bread', 'butter', 'cheese', 'top'];
 const MIXED: RecipeStep[] = ['cheese', 'bread', 'top', 'butter'];
 const RECIPE_TONE: Record<RecipeStep, Tone> = { bread: 'warn', butter: 'ok', cheese: 'accent', top: 'info' };
 
-const ALGO_LABEL: Record<RecipeStep | 'recipe' | 'mixed' | 'problem' | 'answer' | 'algorithm' | 'find' | 'middle' | 'found' | 'home' | 'school' | 'shortest', T> = {
+const ALGO_LABEL: Record<RecipeStep | 'recipe' | 'mixed' | 'problem' | 'answer' | 'algorithm' | 'find' | 'middle' | 'found' | 'dictionary' | 'home' | 'school' | 'shortest', T> = {
   bread: t('Take a slice of bread', '拿一片面包', '拿一片麵包', 'パンを 1 まいおく', 'Возьми кусок хлеба'),
   butter: t('Spread butter', '抹上黄油', '抹上奶油', 'バターをぬる', 'Намажь масло'),
   cheese: t('Add cheese', '放上奶酪', '放上起司', 'チーズをのせる', 'Положи сыр'),
@@ -60,6 +60,7 @@ const ALGO_LABEL: Record<RecipeStep | 'recipe' | 'mixed' | 'problem' | 'answer' 
   find: t('find:', '要找：', '要找：', 'さがす：', 'ищем:'),
   middle: t('middle', '中间', '中間', 'まんなか', 'середина'),
   found: t('found!', '找到了！', '找到了！', '見つけた！', 'нашли!'),
+  dictionary: t('dictionary', '字典', '字典', '辞書', 'словарь'),
   home: t('home', '家', '家', 'いえ', 'дом'),
   school: t('school', '学校', '學校', 'がっこう', 'школа'),
   shortest: t('shortest way', '最近的路', '最近的路', 'いちばん近い道', 'кратчайший путь'),
@@ -69,16 +70,30 @@ const stepLabel = (l: Locale, n: number) =>
   ({ en: `step ${n}`, zh: `第 ${n} 步`, 'zh-hant': `第 ${n} 步`, ja: `ステップ ${n}`, ru: `шаг ${n}` })[l];
 
 /**
- * Dictionary sections in each language's own order, with a story word in section 5 and a
- * practice word in section 1. Chinese dictionaries are ordered by pinyin, Taiwan's by zhuyin.
+ * A tiny dictionary of 7 words in the language's own order, each with the letter it is sorted by
+ * (pinyin for Chinese, zhuyin for Taiwan, kana for Japanese). The story looks up word 5, the
+ * practice word 1, and the middle word 3 is where Algo always opens first.
  */
-const DICT: Record<Locale, { pages: string[]; word: string; word2: string }> = {
-  en: { pages: ['A', 'D', 'G', 'K', 'N', 'R', 'W'], word: 'robot', word2: 'dog' },
-  zh: { pages: ['A', 'D', 'G', 'K', 'N', 'T', 'X'], word: '兔子 tù', word2: '大象 dà' },
-  'zh-hant': { pages: ['ㄅ', 'ㄇ', 'ㄉ', 'ㄋ', 'ㄍ', 'ㄏ', 'ㄑ'], word: '猴子', word2: '貓' },
-  ja: { pages: ['あ', 'か', 'さ', 'た', 'な', 'は', 'ま'], word: 'はな', word2: 'かめ' },
-  ru: { pages: ['А', 'Г', 'Ж', 'К', 'Н', 'Р', 'Ф'], word: 'робот', word2: 'гусь' },
+const DICT: Record<Locale, [word: string, key: string][]> = {
+  en: [['ant', 'A'], ['dog', 'D'], ['fox', 'F'], ['kite', 'K'], ['nest', 'N'], ['robot', 'R'], ['zebra', 'Z']],
+  zh: [['阿姨', 'A'], ['大象', 'D'], ['狗', 'G'], ['孔雀', 'K'], ['牛', 'N'], ['兔子', 'T'], ['熊猫', 'X']],
+  'zh-hant': [['包子', 'ㄅ'], ['貓', 'ㄇ'], ['兔子', 'ㄊ'], ['老虎', 'ㄌ'], ['雞', 'ㄐ'], ['松鼠', 'ㄙ'], ['鴨子', 'ㄧ']],
+  ja: [['あり', 'あ'], ['かめ', 'か'], ['さる', 'さ'], ['たこ', 'た'], ['ねこ', 'ね'], ['はな', 'は'], ['みかん', 'み']],
+  ru: [['арбуз', 'А'], ['гусь', 'Г'], ['жук', 'Ж'], ['кот', 'К'], ['нос', 'Н'], ['робот', 'Р'], ['утка', 'У']],
 };
+
+const startsWith = (l: Locale, key: string) =>
+  ({ en: `starts with ${key}`, zh: `拼音 ${key} 开头`, 'zh-hant': `注音 ${key} 開頭`, ja: `「${key}」ではじまる`, ru: `на букву ${key}` })[l];
+
+/** Under the opened middle word: which way to look next. */
+const lookRight = (l: Locale, mid: string, key: string) =>
+  ({
+    en: `${mid} comes before ${key}, so look right →`,
+    zh: `${mid} 在 ${key} 前面，往右找 →`,
+    'zh-hant': `${mid} 在 ${key} 前面，往右找 →`,
+    ja: `「${mid}」は「${key}」より前。右をさがそう →`,
+    ru: `${mid} раньше ${key} — ищем правее →`,
+  })[l];
 
 /** The recipe as a card: numbered steps in order. */
 function recipeCard(l: Locale): Scene {
@@ -129,39 +144,49 @@ function flowScene(l: Locale): Scene {
 }
 
 /**
- * Dictionary sections as a row of pages. `open` is the page Algo opened, `keep` the pages still
- * in play (the rest fade), `found` the page with the word.
+ * The dictionary as a row of word cards, each with its sorting letter on top. `look` is the
+ * word being looked up, `open` the card Algo opened, `keep` the cards still in play (the rest
+ * fade), `found` the card with the word, and `hint` says which way to go from the middle.
  */
-function dictScene(l: Locale, word: string | null, opts: { open?: number; keep?: [number, number]; found?: number } = {}): Scene {
-  const nodes: SceneNode[] = [];
-  if (word) nodes.push(chip('word', W / 2, 26, seg([ALGO_LABEL.find[l] + ' ', 'muted'], [word, 'accent', true]), { sans: true, size: 18 }));
-  const pages = DICT[l].pages.map((ch, i) => {
-    const out = opts.keep !== undefined && (i < opts.keep[0] || i > opts.keep[1]) && i !== opts.open;
-    return box(`pg${i}`, 27 + i * 56, 104, ch, {
-      w: 50,
-      h: 60,
-      sans: true,
-      size: 20,
-      tone: i === opts.found ? 'ok' : i === opts.open ? 'warn' : out ? 'idle' : 'info',
-      ring: i === opts.found || i === opts.open,
-      dim: out,
-    });
+function dictScene(l: Locale, look: number | null, opts: { open?: number; keep?: [number, number]; found?: number; hint?: boolean } = {}): Scene {
+  const words = DICT[l];
+  const nodes: SceneNode[] = [region('book', 6, 52, 428, 128, { tone: 'warn', label: ALGO_LABEL.dictionary[l], labelAt: 'inside' })];
+  if (look !== null) {
+    const [word, key] = words[look];
+    nodes.push(chip('word', W / 2, 10, seg([ALGO_LABEL.find[l] + ' ', 'muted'], [word, 'accent', true], [`  (${startsWith(l, key)})`, 'muted']), { sans: true, size: 16 }));
+  }
+  const cards = words.map(([word, key], i) => {
+    const out = opts.keep !== undefined && (i < opts.keep[0] || i > opts.keep[1]);
+    const tone: Tone = i === opts.found ? 'ok' : i === opts.open && !out ? 'warn' : out ? 'idle' : 'info';
+    const x = 13 + i * 60;
+    const card = box(`pg${i}`, x, 80, '', { w: 54, h: 80, tone, ring: i === opts.found || (i === opts.open && !out), dim: out });
+    nodes.push(
+      card,
+      text(`pk${i}`, x + 27, 114, key, { anchor: 'middle', size: 24, bold: true, tone: out ? 'muted' : 'accent', dim: out }),
+      text(`pw${i}`, x + 27, 146, word, { anchor: 'middle', size: 13, dim: out }),
+    );
+    return card;
   });
-  nodes.push(...pages);
-  if (opts.found !== undefined) nodes.push(...tag('mid', pages[opts.found], ALGO_LABEL.found[l], { side: 'below', tone: 'ok' }));
-  else if (opts.open !== undefined) nodes.push(...tag('mid', pages[opts.open], ALGO_LABEL.middle[l], { side: 'below', tone: 'warn' }));
+  if (opts.found !== undefined) nodes.push(...tag('mid', cards[opts.found], ALGO_LABEL.found[l], { side: 'below', tone: 'ok' }));
+  else if (opts.open !== undefined) nodes.push(...tag('mid', cards[opts.open], ALGO_LABEL.middle[l], { side: 'below', tone: 'warn' }));
+  if (opts.hint && look !== null && opts.open !== undefined) {
+    nodes.push(text('hint', W / 2, 242, lookRight(l, words[opts.open][1], words[look][1]), { anchor: 'middle', size: 15, bold: true, tone: 'accent' }));
+  }
   return { w: W, h: H, nodes };
 }
 
-/** A tiny map: home, four crossroads, school, and the shortest way lit up. */
+/**
+ * A tiny map: home, four crossroads, school, and the shortest way lit up. The lower road dips
+ * further and spreads wider, so it is visibly longer than the lit one, not a mirror image of it.
+ */
 function mapScene(l: Locale): Scene {
   const home = box('home', 14, 108, ALGO_LABEL.home[l], { w: 96, h: 44, sans: true, size: 15, tone: 'info' });
   const school = box('school', 330, 108, ALGO_LABEL.school[l], { w: 96, h: 44, sans: true, size: 15, tone: 'ok' });
   const dot = (id: string, cx: number, cy: number, on: boolean) => box(id, cx - 13, cy - 13, '', { w: 26, h: 26, shape: 'circle', tone: on ? 'ok' : 'idle' });
-  const c1 = dot('c1', 170, 64, true);
-  const c2 = dot('c2', 170, 196, false);
-  const c3 = dot('c3', 270, 64, true);
-  const c4 = dot('c4', 270, 196, false);
+  const c1 = dot('c1', 180, 84, true);
+  const c2 = dot('c2', 150, 216, false);
+  const c3 = dot('c3', 260, 84, true);
+  const c4 = dot('c4', 290, 216, false);
   const road = (id: string, a: BoxNode, b: BoxNode, best = false) => link(id, a, b, { head: 'none', pad: 1, tone: best ? 'ok' : 'idle', width: best ? 4 : 2 });
   return {
     w: W,
@@ -180,12 +205,12 @@ function mapScene(l: Locale): Scene {
       c2,
       c3,
       c4,
-      text('best', 220, 38, ALGO_LABEL.shortest[l], { anchor: 'middle', size: 14, bold: true, tone: 'ok' }),
+      text('best', 220, 56, ALGO_LABEL.shortest[l], { anchor: 'middle', size: 14, bold: true, tone: 'ok' }),
     ],
   };
 }
 
-const ALGO_STORY: Record<'recipe' | 'idea' | 'dict' | 'half' | 'found' | 'map', T> = {
+const ALGO_STORY: Record<'recipe' | 'idea' | 'dict' | 'open' | 'discard' | 'found' | 'map', T> = {
   recipe: t(
     'Algo wants a sandwich. The recipe is a list of steps, done one after another.',
     'Algo 想做三明治。食谱就是一串步骤，一步接一步地做。',
@@ -201,25 +226,32 @@ const ALGO_STORY: Record<'recipe' | 'idea' | 'dict' | 'half' | 'found' | 'map', 
     'Понятные шаги, которые решают задачу, называются алгоритмом. Делай по ним — и каждый раз получишь ответ.',
   ),
   dict: t(
-    'Algorithms are everywhere, even in a dictionary. Here is a quick way to find a word. Let us find "robot".',
-    '算法到处都有，查字典也用得上。我们来找“兔子”，它的拼音 tù 以 T 开头。',
-    '演算法到處都有，查字典也用得上。我們來找「猴子」，它的注音以 ㄏ 開頭。',
-    'アルゴリズムはどこにでもあるよ。辞書で言葉をさがすときにもね。「はな」をさがしてみよう。',
-    'Алгоритмы повсюду, даже в словаре. Вот быстрый способ найти слово. Давай найдём «робот».',
+    'Algorithms are everywhere, even in a dictionary. Its words are in ABC order: look at the big first letters. Let us find "robot". It starts with R.',
+    '算法到处都有，查字典也用得上。字典里的词按拼音字母排好了顺序，看看上面的大字母。我们来找“兔子”，它的拼音 tù 以 T 开头。',
+    '演算法到處都有，查字典也用得上。字典裡的詞按注音排好了順序，看看上面的大符號。我們來找「松鼠」，它的注音以 ㄙ 開頭。',
+    'アルゴリズムはどこにでもあるよ。辞書の言葉は、あいうえお順にならんでいる。上の大きな字を見てね。「はな」をさがそう。「は」ではじまる言葉だよ。',
+    'Алгоритмы повсюду, даже в словаре. Слова в нём идут по алфавиту — смотри на большие первые буквы. Найдём слово «робот». Оно начинается на Р.',
   ),
-  half: t(
-    'Open the dictionary in the middle: K. R comes after K, so throw away the first half.',
-    '从中间翻开：是 K。T 在 K 后面，所以前一半不要了。',
-    '從中間翻開：是 ㄋ。ㄏ 在 ㄋ 後面，所以前一半不要了。',
-    'まんなかを開くと「た」。「は」は「た」より後ろだから、前の半分はもういらない。',
-    'Открываем словарь посередине: К. Р идёт после К, значит, первую половину откладываем.',
+  open: t(
+    'Do not start from the first word! Open the middle: "kite". K comes before R in the alphabet, so "robot" is further on, to the right.',
+    '不从第一个词开始！先翻开中间：“孔雀”，K 开头。字母表里 K 在 T 前面，所以“兔子”还在后面，在右边。',
+    '不從第一個詞開始！先翻開中間：「老虎」，ㄌ 開頭。注音裡 ㄌ 排在 ㄙ 前面，所以「松鼠」還在後面，在右邊。',
+    '1 つ目からはじめない！まずまんなかを開く：「たこ」。「た」は「は」より前。だから「はな」はもっと後ろ、右のほうだね。',
+    'Не начинаем с первого слова! Открываем середину: «кот». В алфавите К раньше Р, значит, «робот» дальше, справа.',
+  ),
+  discard: t(
+    'So "robot" cannot be "kite" or anything before it. Put those away: half the dictionary is gone in one look!',
+    '所以“兔子”不会是“孔雀”，也不在它前面。把这些都放到一边：看一眼，就去掉了半本字典！',
+    '所以「松鼠」不會是「老虎」，也不在它前面。把這些都放到一邊：看一眼，就去掉了半本字典！',
+    'だから「はな」は「たこ」でも、それより前でもない。そこはもう見なくていい。1 回見ただけで、辞書の半分がへったよ！',
+    'Значит, «робот» — это не «кот» и не то, что до него. Откладываем их: один взгляд — и полсловаря долой!',
   ),
   found: t(
-    'Open the middle of what is left: R. Found it in just 2 tries!',
-    '再翻开剩下部分的中间：是 T。只翻了 2 次就找到了！',
-    '再翻開剩下部分的中間：是 ㄏ。只翻了 2 次就找到了！',
-    'のこりのまんなかを開くと「は」。たった 2 回で見つかった！',
-    'Открываем середину того, что осталось: Р. Нашли всего за 2 попытки!',
+    'Three words are left: nest, robot, zebra. Open the middle one: "robot"! Found in 2 tries, without reading every word.',
+    '还剩三个词：牛、兔子、熊猫。翻开中间那个：“兔子”！只翻了 2 次，不用一个一个地找。',
+    '還剩三個詞：雞、松鼠、鴨子。翻開中間那個：「松鼠」！只翻了 2 次，不用一個一個地找。',
+    'のこりは 3 つ：ねこ、はな、みかん。まんなかを開くと「はな」！たった 2 回で見つかった。ぜんぶ読まなくていいんだ。',
+    'Осталось три слова: нос, робот, утка. Открываем среднее — «робот»! Нашли за 2 попытки и не читали все слова подряд.',
   ),
   map: t(
     'Computers follow algorithms too. A map app uses one to find the shortest way from home to school.',
@@ -230,7 +262,7 @@ const ALGO_STORY: Record<'recipe' | 'idea' | 'dict' | 'half' | 'found' | 'map', 
   ),
 };
 
-const ALGO_PRACTICE: Record<'mixed' | 'askFirst' | 'askNext' | 'done' | 'askHalf' | 'askMid' | 'foundIt', T> = {
+const ALGO_PRACTICE: Record<'mixed' | 'askFirst' | 'askSecond' | 'askNext' | 'done' | 'askHalf' | 'askMid' | 'foundIt', T> = {
   mixed: t(
     'Oh no, the recipe cards got mixed up! Let us put the steps back in order.',
     '糟糕，食谱卡片被打乱了！我们把步骤排回正确的顺序吧。',
@@ -239,34 +271,35 @@ const ALGO_PRACTICE: Record<'mixed' | 'askFirst' | 'askNext' | 'done' | 'askHalf
     'Ой, карточки рецепта перепутались! Давай разложим шаги по порядку.',
   ),
   askFirst: t('Which step comes first?', '哪一步是第一步？', '哪一步是第一步？', 'さいしょの手順はどれ？', 'Какой шаг первый?'),
+  askSecond: t('Bread is down. What comes second?', '面包放好了。第二步是什么？', '麵包放好了。第二步是什麼？', 'パンをおいたよ。2 番目は？', 'Хлеб положили. Какой шаг второй?'),
   askNext: t('Bread, then butter. What comes next?', '先放面包，再抹黄油。接下来是什么？', '先放麵包，再抹奶油。接下來是什麼？', 'パン、それからバター。つぎは？', 'Хлеб, потом масло. Что дальше?'),
   done: t(
-    'The recipe is in order again. Right steps in the right order: that is an algorithm!',
-    '食谱又排好了。正确的步骤，正确的顺序：这就是算法！',
-    '食譜又排好了。正確的步驟，正確的順序：這就是演算法！',
-    'カードがならんだね。正しい手順を正しいじゅんばんで：これがアルゴリズム！',
-    'Рецепт снова по порядку. Правильные шаги в правильном порядке — это и есть алгоритм!',
+    'The last card, "Put bread on top", goes to step 4. The recipe is in order again. Right steps in the right order: that is an algorithm!',
+    '最后一张卡片“盖上一片面包”放在第 4 步。食谱又排好了。正确的步骤，正确的顺序：这就是算法！',
+    '最後一張卡片「蓋上一片麵包」放在第 4 步。食譜又排好了。正確的步驟，正確的順序：這就是演算法！',
+    'のこった「パンをかぶせる」はステップ 4。カードがならんだね。正しい手順を正しいじゅんばんで：これがアルゴリズム！',
+    'Последняя карточка, «Накрой хлебом», — это шаг 4. Рецепт снова по порядку. Правильные шаги в правильном порядке — это и есть алгоритм!',
   ),
   askHalf: t(
-    'New word: "dog". Algo opens the middle and sees K. Is D before or after K?',
-    '新词：“大象”，拼音 dà 以 D 开头。从中间翻开是 K。D 在 K 的前面还是后面？',
-    '新詞：「貓」，注音以 ㄇ 開頭。從中間翻開是 ㄋ。ㄇ 在 ㄋ 的前面還是後面？',
-    'こんどは「かめ」。まんなかを開くと「た」。「か」は「た」の前？後ろ？',
-    'Новое слово: «гусь». Algo открывает середину и видит К. Г стоит до К или после?',
+    'Now find "dog" (it starts with D). Algo opens the middle: "kite" (K). Is "dog" before "kite" or after it?',
+    '现在找“大象”（拼音 D 开头）。翻开中间是“孔雀”（K）。“大象”在“孔雀”前面还是后面？',
+    '現在找「貓」（注音 ㄇ 開頭）。翻開中間是「老虎」（ㄌ）。「貓」在「老虎」前面還是後面？',
+    'こんどは「かめ」（「か」ではじまる）をさがそう。まんなかは「たこ」（「た」）。「かめ」は「たこ」の前？後ろ？',
+    'Теперь найдём «гусь» (на букву Г). Algo открывает середину: «кот» (К). «Гусь» стоит до «кота» или после?',
   ),
   askMid: t(
-    'Throw away K and everything after it. Which page is in the middle now?',
-    '把 K 和后面的都扔掉。现在中间是哪一页？',
-    '把 ㄋ 和後面的都丟掉。現在中間是哪一頁？',
-    '「た」から後ろはぜんぶいらない。いま、まんなかはどれ？',
-    'Откладываем К и всё, что после. Какая страница теперь посередине?',
+    'Put away "kite" and everything after it. Three words are left. Which one is in the middle?',
+    '把“孔雀”和后面的词放到一边，还剩三个词。中间是哪一个？',
+    '把「老虎」和後面的詞放到一邊，還剩三個詞。中間是哪一個？',
+    '「たこ」から後ろはおしまい。のこりは 3 つ。まんなかはどれ？',
+    'Откладываем «кот» и всё, что после. Осталось три слова. Какое из них посередине?',
   ),
   foundIt: t(
-    'Found "dog" in 2 tries. Algo never had to look at every page!',
-    '只翻了 2 次就找到了“大象”。根本不用一页一页地翻！',
-    '只翻了 2 次就找到了「貓」。根本不用一頁一頁地翻！',
-    '2 回で「かめ」が見つかった。1 ページずつ見なくてもいいんだね！',
-    'Нашли «гусь» за 2 попытки. Не пришлось листать каждую страницу!',
+    'Found "dog" in 2 tries. Algo never had to read every word!',
+    '只翻了 2 次就找到了“大象”，根本不用一个一个地看！',
+    '只翻了 2 次就找到了「貓」，根本不用一個一個地看！',
+    '2 回で「かめ」が見つかった。ぜんぶ見なくてもいいんだね！',
+    'Нашли «гусь» за 2 попытки — и не читали все слова подряд!',
   ),
 };
 
@@ -275,13 +308,20 @@ const ALGO_CHOICE: Record<'before' | 'after', T> = {
   after: t('After', '后面', '後面', '後ろ', 'После'),
 };
 
-const ALGO_EXPLAIN: Record<'first' | 'next' | 'half' | 'mid', T> = {
+const ALGO_EXPLAIN: Record<'first' | 'second' | 'next' | 'half' | 'mid', T> = {
   first: t(
     'You need a slice of bread before you can put anything on it.',
     '要先有面包，才能往上面放东西。',
     '要先有麵包，才能往上面放東西。',
     'まずパンがないと、なにものせられないよ。',
     'Сначала нужен хлеб — иначе не на что класть.',
+  ),
+  second: t(
+    'Butter is spread right on the bread, before anything else goes on top.',
+    '黄油要直接抹在面包上，然后才能放别的东西。',
+    '奶油要直接抹在麵包上，然後才能放別的東西。',
+    'バターはパンに直接ぬるよ。ほかのものをのせるのはそのあと。',
+    'Масло мажут прямо на хлеб — а уже потом кладут всё остальное.',
   ),
   next: t(
     'Cheese goes on the butter. The top slice comes last, or there would be nothing to cover.',
@@ -291,18 +331,18 @@ const ALGO_EXPLAIN: Record<'first' | 'next' | 'half' | 'mid', T> = {
     'Сыр кладём на масло. Верхний хлеб — в самом конце, иначе нечего накрывать.',
   ),
   half: t(
-    'D comes before K in the alphabet, so the word is in the first half.',
-    '字母表里 D 在 K 前面，所以这个词在前一半。',
-    '注音符號裡 ㄇ 在 ㄋ 前面，所以這個詞在前一半。',
-    '「か」は「た」より前。だから、言葉は前の半分にあるよ。',
-    'В алфавите Г идёт раньше К, значит, слово в первой половине.',
+    'D comes before K in the alphabet, so "dog" is on the left, before "kite".',
+    '字母表里 D 在 K 前面，所以“大象”在左边，在“孔雀”前面。',
+    '注音裡 ㄇ 排在 ㄌ 前面，所以「貓」在左邊，在「老虎」前面。',
+    '「か」は「た」より前。だから「かめ」は左のほう、「たこ」の前だよ。',
+    'В алфавите Г раньше К, значит, «гусь» слева, до «кота».',
   ),
   mid: t(
-    'D sits in the middle of A, D and G. And it is our letter!',
-    'D 正好在 A、D、G 的中间，而且就是我们要找的字母！',
-    'ㄇ 正好在 ㄅ、ㄇ、ㄉ 的中間，而且就是我們要找的符號！',
-    '「あ・か・さ」のまんなかは「か」。さがしていた字だ！',
-    'Г как раз посередине между А, Г и Ж. И это наша буква!',
+    '"Dog" is in the middle of ant, dog and fox, and it is the very word we want!',
+    '“大象”正好在阿姨、大象、狗的中间，而且就是我们要找的词！',
+    '「貓」正好在包子、貓、兔子的中間，而且就是我們要找的詞！',
+    '「あり・かめ・さる」のまんなかは「かめ」。しかも、さがしていた言葉だ！',
+    '«Гусь» как раз посередине между «арбузом» и «жуком» — и это наше слово!',
   ),
 };
 
@@ -351,13 +391,13 @@ const ALGO_QUIZ: Record<'q1' | 'q1a' | 'q1b' | 'q1c' | 'q1e' | 'q2' | 'q2a' | 'q
 const algorithms: LessonContent = {
   story(l): StorySlide[] {
     const S = ALGO_STORY;
-    const word = DICT[l].word;
     return [
       { scene: recipeCard(l), say: S.recipe[l] },
       { scene: flowScene(l), say: S.idea[l] },
-      { scene: dictScene(l, word), say: S.dict[l] },
-      { scene: dictScene(l, word, { open: 3, keep: [4, 6] }), say: S.half[l] },
-      { scene: dictScene(l, word, { found: 5, keep: [4, 6] }), say: S.found[l] },
+      { scene: dictScene(l, 5), say: S.dict[l] },
+      { scene: dictScene(l, 5, { open: 3, hint: true }), say: S.open[l] },
+      { scene: dictScene(l, 5, { keep: [4, 6] }), say: S.discard[l] },
+      { scene: dictScene(l, 5, { found: 5, keep: [4, 6] }), say: S.found[l] },
       { scene: mapScene(l), say: S.map[l] },
     ];
   },
@@ -365,10 +405,15 @@ const algorithms: LessonContent = {
     const P = ALGO_PRACTICE;
     const E = ALGO_EXPLAIN;
     const card = (s: RecipeStep): [string, string] => [s, ALGO_LABEL[s][l]];
-    const { pages, word2 } = DICT[l];
+    const words = DICT[l];
     return [
       { scene: sortScene(l, []), say: P.mixed[l] },
       { scene: sortScene(l, [], { asking: true }), say: P.askFirst[l], ask: pick(P.askFirst[l], MIXED.map(card), 'bread', E.first[l]) },
+      {
+        scene: sortScene(l, ['bread'], { asking: true }),
+        say: P.askSecond[l],
+        ask: pick(P.askSecond[l], [card('butter'), card('cheese'), card('top')], 'butter', E.second[l]),
+      },
       {
         scene: sortScene(l, ['bread', 'butter'], { asking: true }),
         say: P.askNext[l],
@@ -376,16 +421,16 @@ const algorithms: LessonContent = {
       },
       { scene: sortScene(l, RECIPE), say: P.done[l] },
       {
-        scene: dictScene(l, word2, { open: 3 }),
+        scene: dictScene(l, 1, { open: 3 }),
         say: P.askHalf[l],
         ask: pick(P.askHalf[l], [['before', ALGO_CHOICE.before[l]], ['after', ALGO_CHOICE.after[l]]], 'before', E.half[l]),
       },
       {
-        scene: dictScene(l, word2, { keep: [0, 2] }),
+        scene: dictScene(l, 1, { keep: [0, 2] }),
         say: P.askMid[l],
-        ask: pick(P.askMid[l], [0, 1, 2].map((i): [string, string] => [`p${i}`, pages[i]]), 'p1', E.mid[l]),
+        ask: pick(P.askMid[l], [0, 1, 2].map((i): [string, string] => [`p${i}`, words[i][0]]), 'p1', E.mid[l]),
       },
-      { scene: dictScene(l, word2, { found: 1, keep: [0, 2] }), say: P.foundIt[l] },
+      { scene: dictScene(l, 1, { found: 1, keep: [0, 2] }), say: P.foundIt[l] },
     ];
   },
   quiz(l): KidQuestion[] {
@@ -607,7 +652,7 @@ const LOOP_QUIZ: Record<'q1' | 'q1e' | 'q2' | 'q2e' | 'q3' | 'q3a' | 'q3b' | 'q3
     'A loop says: repeat 4 times, clap. How many claps do you hear?',
     '循环说：重复 4 次，拍手。你会听到几下拍手？',
     '迴圈說：重複 4 次，拍手。你會聽到幾下拍手？',
-    'ループに「4 回くりかえす：手をたたく」と書いた。手は何回なる？',
+    'ループに「4 回くりかえす：手をたたく」と書いた。手をたたく音は何回聞こえる？',
     'Цикл: повтори 4 раза — хлопок. Сколько хлопков ты услышишь?',
   ),
   q1e: t(
@@ -784,7 +829,7 @@ const REC_STORY: Record<'dolls' | 'idea' | 'stop' | 'back' | 'folders', T> = {
     'Opening a doll is the same job each time, just smaller. Solving a problem with a smaller copy of itself is called recursion.',
     '每次打开娃娃都是同一件事，只是娃娃变小了。用更小的同类问题来解决问题，就叫递归。',
     '每次打開娃娃都是同一件事，只是娃娃變小了。用更小的同類問題來解決問題，就叫遞迴。',
-    'にんぎょうを開けるのは、まいかい同じしごと。小さくなるだけ。小さい同じもんだいを使ってとくことを「再帰」というよ。',
+    'にんぎょうを開けるのは、まいかい同じしごと。小さくなるだけ。小さい同じもんだいを使ってとくことを「再帰（さいき）」というよ。',
     'Открыть матрёшку — каждый раз то же самое, только меньше. Решать задачу через её уменьшенную копию — это рекурсия.',
   ),
   stop: t(
@@ -1173,11 +1218,11 @@ const SPEED_STORY: Record<'ways' | 'scan' | 'halve' | 'pairs' | 'grow' | 'big', 
     'Чем больше предметов, тем больше шагов. «Пополам» почти не растёт, «по одному» растёт ровно, а «все пары» взлетают!',
   ),
   big: t(
-    'That is why programmers count steps. Among 1000 names, one by one can take 1000 looks. Halving needs only 10!',
-    '所以程序员很在意步数。在 1000 个名字里找，一个一个找可能要 1000 次，对半分只要 10 次！',
-    '所以程式設計師很在意步數。在 1000 個名字裡找，一個一個找可能要 1000 次，對半分只要 10 次！',
-    'だからプログラマーはステップを数えるんだ。1000 人の名前からさがすと、ひとつずつなら 1000 回、はんぶんにするなら 10 回だけ！',
-    'Поэтому программисты считают шаги. Среди 1000 имён поиск по одному может занять 1000 шагов, а пополам — всего 10!',
+    'That is why programmers count steps. Among 1000 names in ABC order, one by one can take 1000 looks. Halving needs only 10!',
+    '所以程序员很在意步数。在按顺序排好的 1000 个名字里找，一个一个找可能要 1000 次，对半分只要 10 次！',
+    '所以程式設計師很在意步數。在按順序排好的 1000 個名字裡找，一個一個找可能要 1000 次，對半分只要 10 次！',
+    'だからプログラマーはステップを数えるんだ。じゅんばんにならんだ 1000 人の名前からさがすと、ひとつずつなら 1000 回、はんぶんにするなら 10 回だけ！',
+    'Поэтому программисты считают шаги. Среди 1000 имён по алфавиту поиск по одному может занять 1000 шагов, а пополам — всего 10!',
   ),
 };
 
@@ -1276,11 +1321,11 @@ const SPEED_QUIZ: Record<'q1' | 'q1e' | 'q2' | 'q2e' | 'q3' | 'q3e', T> = {
     'Делим 16 карточек пополам: 16 → 8 → 4 → 2 → 1. Сколько это шагов?',
   ),
   q3e: t(
-    'Count the arrows: 4 halvings. Twice the cards added just 1 step.',
-    '数数箭头：分了 4 次。卡片多了一倍，只多了 1 步。',
-    '數數箭頭：分了 4 次。卡片多了一倍，只多了 1 步。',
-    'やじるしを数えると 4 回。カードが 2 ばいでも、ふえたのは 1 ステップだけ。',
-    'Считаем стрелки: 4 раза. Карточек вдвое больше, а шаг добавился всего один.',
+    'Count the arrows: 4 halvings. 8 cards took 3, so twice the cards added just 1 step.',
+    '数数箭头：分了 4 次。8 张卡片要 3 次，卡片多了一倍，只多了 1 步。',
+    '數數箭頭：分了 4 次。8 張卡片要 3 次，卡片多了一倍，只多了 1 步。',
+    'やじるしを数えると 4 回。8 まいなら 3 回だった。カードが 2 ばいでも、ふえたのは 1 ステップだけ。',
+    'Считаем стрелки: 4 раза. Для 8 карточек было 3 — карточек вдвое больше, а шаг добавился всего один.',
   ),
 };
 

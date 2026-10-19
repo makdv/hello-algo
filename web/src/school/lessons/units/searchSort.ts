@@ -140,7 +140,7 @@ const LABEL: Record<'smallToBig' | 'middle' | 'smallest' | 'leader' | 'smaller' 
   inOrder: t('in order', '排好了', '排好了', 'ならんだ', 'по порядку'),
   rest: t('the rest', '剩下的', '剩下的', 'のこり', 'остальные'),
   moreBoxes: t('more boxes, more looking', '盒子越多，找得越久', '盒子越多，找得越久', '箱がふえると、さがす回数もふえる', 'больше коробок — дольше искать'),
-  oneByOne: t('one by one: 9 looks', '一个一个找：9 次', '一個一個找：9 次', 'ひとつずつ：9 回', 'по одному: 9 раз'),
+  oneByOne: t('one by one: 6 looks', '一个一个找：6 次', '一個一個找：6 次', 'ひとつずつ：6 回', 'по одному: 6 раз'),
   halving: t('halving: 3 peeks', '切一半：3 次', '切一半：3 次', '半分ずつ：3 回', 'пополам: 3 раза'),
   newLine: t('new line', '新队伍', '新隊伍', '新しい列', 'новый строй'),
 };
@@ -243,7 +243,7 @@ const LINEAR_STORY: Record<'hide' | 'first' | 'more' | 'found' | 'missing' | 'na
 };
 
 const LINEAR_PRACTICE: Record<
-  'start' | 'ask1' | 'next' | 'stop' | 'skip' | 'ask1e' | 'more' | 'ask2' | 'ask2e' | 'ask3' | 'ask3e' | 'done',
+  'start' | 'ask1' | 'next' | 'stop' | 'skip' | 'ask1e' | 'box2' | 'box3' | 'ask2' | 'ask2e' | 'ask3' | 'ask3e' | 'done',
   T
 > = {
   start: t(
@@ -264,12 +264,19 @@ const LINEAR_PRACTICE: Record<
     '6 は 4 じゃないから、となりの箱をあけるよ。',
     '6 — это не 4, поэтому открываем следующую коробку.',
   ),
-  more: t(
-    'Box 2 has 2, box 3 has 9. Not 4 yet. On to box 4!',
-    '第 2 个是 2，第 3 个是 9。还不是 4。看第 4 个！',
-    '第 2 個是 2，第 3 個是 9。還不是 4。看第 4 個！',
-    '2 番目は 2、3 番目は 9。まだ 4 じゃない。4 番目へ！',
-    'Во второй — 2, в третьей — 9. Пока не 4. Открываем четвёртую!',
+  box2: t(
+    'Box 2 has 2. Still not 4, so we open the next one.',
+    '第 2 个盒子里是 2。还不是 4，再打开下一个。',
+    '第 2 個盒子裡是 2。還不是 4，再打開下一個。',
+    '2 番目の箱は 2。まだ 4 じゃないから、となりをあけよう。',
+    'Во второй коробке — 2. Всё ещё не 4, открываем следующую.',
+  ),
+  box3: t(
+    'Box 3 has 9. Not 4 either. On to box 4!',
+    '第 3 个盒子里是 9。也不是 4。看第 4 个！',
+    '第 3 個盒子裡是 9。也不是 4。看第 4 個！',
+    '3 番目の箱は 9。これも 4 じゃない。4 番目へ！',
+    'В третьей — 9. Тоже не 4. Открываем четвёртую!',
   ),
   ask2: t(
     'Box 4 has 4. Found it! How many boxes did we open?',
@@ -286,11 +293,11 @@ const LINEAR_PRACTICE: Record<
     'Мы открыли 6, 2, 9 и потом 4 — четыре коробки.',
   ),
   ask3: t(
-    'Now find 8. It is in none of the boxes. How many boxes must we open to be sure?',
-    '现在找 8。它不在任何一个盒子里。要打开几个盒子才能确定？',
-    '現在找 8。它不在任何一個盒子裡。要打開幾個盒子才能確定？',
-    'こんどは 8 をさがそう。8 はどの箱にもないよ。たしかめるには、いくつ箱をあける？',
-    'Теперь ищем 8. Её нет ни в одной коробке. Сколько коробок нужно открыть, чтобы знать наверняка?',
+    'Now find 8. What if 8 is in none of the boxes? How many boxes must we open before we know for sure?',
+    '现在找 8。如果 8 不在任何一个盒子里呢？要打开几个盒子，我们才能确定？',
+    '現在找 8。如果 8 不在任何一個盒子裡呢？要打開幾個盒子，我們才能確定？',
+    'こんどは 8 をさがそう。もし 8 が どの箱にも なかったら？いくつ箱をあけたら、「ない」と はっきりわかる？',
+    'Теперь ищем 8. А если восьмёрки нет ни в одной коробке? Сколько коробок нужно открыть, чтобы знать наверняка?',
   ),
   ask3e: t(
     'To be sure 8 is missing, we must look in every box: all 6.',
@@ -335,11 +342,11 @@ const LINEAR_QUIZ: Record<'q1' | 'q1e' | 'q2' | 'q2a' | 'q2b' | 'q2c' | 'q2e' | 
     'Когда порядка нет, нет и подсказки. Проверить каждую коробку — надёжный способ.',
   ),
   q3: t(
-    'There are 10 boxes, and the number is in none of them. How many boxes do we open?',
-    '一共有 10 个盒子，要找的数字一个也不在。我们要打开几个盒子？',
-    '一共有 10 個盒子，要找的數字一個也不在。我們要打開幾個盒子？',
-    '箱は 10 こ。さがす数字は どの箱にもない。いくつ箱をあける？',
-    'Коробок 10, и числа нет ни в одной. Сколько коробок откроем?',
+    'There are 10 boxes. What if the number is in none of them? How many boxes do we open before we know for sure?',
+    '一共有 10 个盒子。如果要找的数字一个也不在呢？要打开几个盒子才能确定？',
+    '一共有 10 個盒子。如果要找的數字一個也不在呢？要打開幾個盒子才能確定？',
+    '箱は 10 こ。もし さがす数字が どの箱にも なかったら？いくつ箱をあけたら、はっきりわかる？',
+    'Коробок 10. А если числа нет ни в одной? Сколько коробок откроем, пока не узнаем наверняка?',
   ),
   q3e: t(
     'We have to open all 10 to be sure the number is not there.',
@@ -385,7 +392,8 @@ const linear_search: LessonContent = {
           explain: P.ask1e[l],
         },
       },
-      { scene: boxes(LS_TRY, states(n, 2, 'look'), { goal: FIND[l](4) }), say: P.more[l] },
+      { scene: boxes(LS_TRY, states(n, 1, 'look'), { goal: FIND[l](4) }), say: P.box2[l] },
+      { scene: boxes(LS_TRY, states(n, 2, 'look'), { goal: FIND[l](4) }), say: P.box3[l] },
       { scene: boxes(LS_TRY, states(n, 3, 'yes'), { goal: FIND[l](4) }), say: P.ask2[l], ask: ask(P.ask2[l], [1, 3, 4], 4, P.ask2e[l]) },
       { scene: boxes(LS_TRY, states(n, -1, 'closed'), { goal: FIND[l](8) }), say: P.ask3[l], ask: ask(P.ask3[l], [1, 3, 6], 6, P.ask3e[l]) },
       { scene: boxes(LS_TRY, states(n, n, 'closed'), { goal: FIND[l](8), caption: NOT_HERE[l](8), captionTone: 'danger' }), say: P.done[l] },
@@ -460,11 +468,11 @@ const BINARY_STORY: Record<'sorted' | 'peek1' | 'right' | 'peek2' | 'found' | 'w
     '11 больше 9, значит, оно справа. Всю левую половину пропускаем!',
   ),
   peek2: t(
-    'Peek at the middle of the rest: 14. 11 is smaller, so now look only to the left of 14.',
-    '再看看剩下部分的中间：14。11 更小，所以只看 14 的左边。',
-    '再看看剩下部分的中間：14。11 更小，所以只看 14 的左邊。',
-    'のこりの まん中をのぞこう：14。11 の方が小さいから、14 の左だけ見ればいい。',
-    'Смотрим в середину того, что осталось: 14. 11 меньше — теперь смотрим только левее 14.',
+    'Peek at the middle of the 4 that are left. Two sit in the middle, so we take the left one: 14. 11 is smaller, so now look only to the left of 14.',
+    '再看看剩下 4 个的中间。中间有两个，我们取左边那个：14。11 更小，所以只看 14 的左边。',
+    '再看看剩下 4 個的中間。中間有兩個，我們取左邊那個：14。11 更小，所以只看 14 的左邊。',
+    'のこり 4 この まん中をのぞこう。まん中が 2 こあるときは 左の方：14。11 の方が小さいから、14 の左だけ見ればいい。',
+    'Смотрим в середину оставшихся четырёх. В середине двое — берём левого: 14. 11 меньше, значит, смотрим только левее 14.',
   ),
   found: t(
     'Only one bubble is left: 11. Found it, in just 3 peeks!',
@@ -474,11 +482,11 @@ const BINARY_STORY: Record<'sorted' | 'peek1' | 'right' | 'peek2' | 'found' | 'w
     'Остался один пузырь: 11. Нашли всего за 3 взгляда!',
   ),
   win: t(
-    'One by one could take 9 looks. Halving took only 3! Every peek throws away half, so even a huge row needs few peeks.',
-    '一个一个找可能要看 9 次，切一半只用了 3 次！每看一次就扔掉一半，所以就算队伍很长，也只要看几次。',
-    '一個一個找可能要看 9 次，切一半只用了 3 次！每看一次就丟掉一半，所以就算隊伍很長，也只要看幾次。',
-    'ひとつずつだと 9 回かかるかも。半分にすると 3 回だけ！のぞくたびに半分へるから、すごく長い列でも すぐ見つかるよ。',
-    'По одному — до 9 взглядов. Пополам — всего 3! Каждый взгляд отбрасывает половину, так что даже огромный ряд проверяется быстро.',
+    'One by one, we would look 6 times: 2, 4, 5, 7, 9, 11. Halving took only 3 peeks! Every peek throws away half, so even a huge row needs few peeks.',
+    '一个一个找，要看 6 次：2、4、5、7、9、11。切一半只看了 3 次！每看一次就扔掉一半，所以就算队伍很长，也只要看几次。',
+    '一個一個找，要看 6 次：2、4、5、7、9、11。切一半只看了 3 次！每看一次就丟掉一半，所以就算隊伍很長，也只要看幾次。',
+    'ひとつずつだと 6 回：2、4、5、7、9、11。半分にすると 3 回だけ！のぞくたびに半分へるから、すごく長い列でも すぐ見つかるよ。',
+    'По одному пришлось бы смотреть 6 раз: 2, 4, 5, 7, 9, 11. Пополам — всего 3 взгляда! Каждый взгляд отбрасывает половину, так что даже огромный ряд проверяется быстро.',
   ),
 };
 
@@ -1106,7 +1114,7 @@ const QUICK_QUIZ: Record<'q1' | 'q1a' | 'q1b' | 'q1e' | 'q2' | 'q2e' | 'q3' | 'q
     '列の最初のバブルがリーダー。だから 5 だよ。',
     'Вожак — первый пузырь в ряду, то есть 5.',
   ),
-  q3: t('The leader is home. What happens next?', '队长到家了。接下来会怎样？', '隊長到家了。接下來會怎樣？', 'リーダーがおうちに着いた。つぎは どうなる？', 'Вожак дома. Что дальше?'),
+  q3: t('Leader 3 is home. What happens next?', '队长 3 到家了。接下来会怎样？', '隊長 3 到家了。接下來會怎樣？', 'リーダーの 3 が おうちに着いた。つぎは どうなる？', 'Вожак 3 дома. Что дальше?'),
   q3a: t(
     'Each team picks its own leader and does the same',
     '每一队选自己的队长，照样再来',
@@ -1117,11 +1125,11 @@ const QUICK_QUIZ: Record<'q1' | 'q1a' | 'q1b' | 'q1e' | 'q2' | 'q2e' | 'q3' | 'q
   q3b: t('Everyone mixes up and we start over', '大家打乱，从头再来', '大家打亂，從頭再來', 'みんなまぜて、さいしょからやり直す', 'Всех перемешиваем и начинаем сначала'),
   q3c: t('Nothing: the row is already sorted', '什么也不做：已经排好了', '什麼也不做：已經排好了', 'なにもしない：もうならんでいる', 'Ничего: ряд уже упорядочен'),
   q3e: t(
-    'The teams are not sorted yet. Each team repeats the same trick until every bubble is home.',
-    '两队里面还没排好。每一队都用同样的方法，直到每个泡泡都到家。',
-    '兩隊裡面還沒排好。每一隊都用同樣的方法，直到每個泡泡都到家。',
-    'チームの中は まだ ならんでいない。みんなが おうちに着くまで、同じわざを くりかえすよ。',
-    'Внутри команд порядка ещё нет. Каждая повторяет тот же приём, пока все пузыри не окажутся дома.',
+    'Inside the teams, 2 1 and 5 4 are still mixed up. Each team repeats the same trick until every bubble is home.',
+    '两队里面，2 1 和 5 4 还是乱的。每一队都用同样的方法，直到每个泡泡都到家。',
+    '兩隊裡面，2 1 和 5 4 還是亂的。每一隊都用同樣的方法，直到每個泡泡都到家。',
+    'チームの中の 2 1 と 5 4 は、まだ ならんでいない。みんなが おうちに着くまで、同じわざを くりかえすよ。',
+    'Внутри команд, 2 1 и 5 4, порядка ещё нет. Каждая повторяет тот же приём, пока все пузыри не окажутся дома.',
   ),
 };
 
@@ -1178,6 +1186,13 @@ const quick_sort: LessonContent = {
         ],
         answer: 'each',
         explain: Q.q3e[l],
+        // What leader 3 leaves after splitting [3, 1, 2, 5, 4]: both teams still mixed up.
+        scene: sortScene('qs', line([2, 1, 3, 5, 4], [], [3]), {
+          teams: [
+            [0, 1],
+            [3, 4],
+          ],
+        }),
       },
     ];
   },
