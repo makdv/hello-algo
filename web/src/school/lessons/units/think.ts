@@ -47,7 +47,7 @@ const RECIPE: RecipeStep[] = ['bread', 'butter', 'cheese', 'top'];
 const MIXED: RecipeStep[] = ['cheese', 'bread', 'top', 'butter'];
 const RECIPE_TONE: Record<RecipeStep, Tone> = { bread: 'warn', butter: 'ok', cheese: 'accent', top: 'info' };
 
-const ALGO_LABEL: Record<RecipeStep | 'recipe' | 'mixed' | 'problem' | 'answer' | 'algorithm' | 'find' | 'middle' | 'found' | 'home' | 'school' | 'shortest', T> = {
+const ALGO_LABEL: Record<RecipeStep | 'recipe' | 'mixed' | 'problem' | 'answer' | 'algorithm' | 'find' | 'middle' | 'found' | 'dictionary' | 'home' | 'school' | 'shortest', T> = {
   bread: t('Take a slice of bread', '拿一片面包', '拿一片麵包', 'パンを 1 まいおく', 'Возьми кусок хлеба'),
   butter: t('Spread butter', '抹上黄油', '抹上奶油', 'バターをぬる', 'Намажь масло'),
   cheese: t('Add cheese', '放上奶酪', '放上起司', 'チーズをのせる', 'Положи сыр'),
@@ -60,6 +60,7 @@ const ALGO_LABEL: Record<RecipeStep | 'recipe' | 'mixed' | 'problem' | 'answer' 
   find: t('find:', '要找：', '要找：', 'さがす：', 'ищем:'),
   middle: t('middle', '中间', '中間', 'まんなか', 'середина'),
   found: t('found!', '找到了！', '找到了！', '見つけた！', 'нашли!'),
+  dictionary: t('dictionary', '字典', '字典', '辞書', 'словарь'),
   home: t('home', '家', '家', 'いえ', 'дом'),
   school: t('school', '学校', '學校', 'がっこう', 'школа'),
   shortest: t('shortest way', '最近的路', '最近的路', 'いちばん近い道', 'кратчайший путь'),
@@ -69,15 +70,16 @@ const stepLabel = (l: Locale, n: number) =>
   ({ en: `step ${n}`, zh: `第 ${n} 步`, 'zh-hant': `第 ${n} 步`, ja: `ステップ ${n}`, ru: `шаг ${n}` })[l];
 
 /**
- * Dictionary sections in each language's own order, with a story word in section 5 and a
- * practice word in section 1. Chinese dictionaries are ordered by pinyin, Taiwan's by zhuyin.
+ * A dictionary split into 7 groups of pages, each labelled with the letters it covers, in the
+ * language's own order: the story word is in group 5, the practice word in group 1, and the
+ * middle group (3) is where Algo opens first. Chinese is ordered by pinyin, Taiwan by zhuyin.
  */
 const DICT: Record<Locale, { pages: string[]; word: string; word2: string }> = {
-  en: { pages: ['A', 'D', 'G', 'K', 'N', 'R', 'W'], word: 'robot', word2: 'dog' },
-  zh: { pages: ['A', 'D', 'G', 'K', 'N', 'T', 'X'], word: '兔子 tù', word2: '大象 dà' },
-  'zh-hant': { pages: ['ㄅ', 'ㄇ', 'ㄉ', 'ㄋ', 'ㄍ', 'ㄏ', 'ㄑ'], word: '猴子', word2: '貓' },
-  ja: { pages: ['あ', 'か', 'さ', 'た', 'な', 'は', 'ま'], word: 'はな', word2: 'かめ' },
-  ru: { pages: ['А', 'Г', 'Ж', 'К', 'Н', 'Р', 'Ф'], word: 'робот', word2: 'гусь' },
+  en: { pages: ['A–C', 'D–F', 'G–J', 'K–M', 'N–Q', 'R–T', 'U–Z'], word: 'robot', word2: 'dog' },
+  zh: { pages: ['A–C', 'D–F', 'G–J', 'K–M', 'N–Q', 'R–T', 'W–Z'], word: '兔子 tù', word2: '大象 dà' },
+  'zh-hant': { pages: ['ㄅ–ㄈ', 'ㄉ–ㄌ', 'ㄍ–ㄏ', 'ㄐ–ㄒ', 'ㄓ–ㄖ', 'ㄗ–ㄙ', 'ㄚ–ㄦ'], word: '松鼠', word2: '老虎' },
+  ja: { pages: ['あ–お', 'か–こ', 'さ–そ', 'た–と', 'な–の', 'は–ほ', 'ま–ん'], word: 'はな', word2: 'かめ' },
+  ru: { pages: ['А–В', 'Г–Е', 'Ж–И', 'К–М', 'Н–П', 'Р–Т', 'У–Я'], word: 'робот', word2: 'гусь' },
 };
 
 /** The recipe as a card: numbered steps in order. */
@@ -129,21 +131,21 @@ function flowScene(l: Locale): Scene {
 }
 
 /**
- * Dictionary sections as a row of pages. `open` is the page Algo opened, `keep` the pages still
- * in play (the rest fade), `found` the page with the word.
+ * The dictionary as a book: 7 groups of pages, each labelled with its letters. `open` is the
+ * group Algo opened, `keep` the groups still in play (the rest fade), `found` the group with the word.
  */
 function dictScene(l: Locale, word: string | null, opts: { open?: number; keep?: [number, number]; found?: number } = {}): Scene {
-  const nodes: SceneNode[] = [];
-  if (word) nodes.push(chip('word', W / 2, 26, seg([ALGO_LABEL.find[l] + ' ', 'muted'], [word, 'accent', true]), { sans: true, size: 18 }));
-  const pages = DICT[l].pages.map((ch, i) => {
-    const out = opts.keep !== undefined && (i < opts.keep[0] || i > opts.keep[1]) && i !== opts.open;
-    return box(`pg${i}`, 27 + i * 56, 104, ch, {
-      w: 50,
-      h: 60,
+  const nodes: SceneNode[] = [region('book', 12, 78, 416, 112, { tone: 'warn', label: ALGO_LABEL.dictionary[l], labelAt: 'inside' })];
+  if (word) nodes.push(chip('word', W / 2, 22, seg([ALGO_LABEL.find[l] + ' ', 'muted'], [word, 'accent', true]), { sans: true, size: 18 }));
+  const pages = DICT[l].pages.map((range, i) => {
+    const out = opts.keep !== undefined && (i < opts.keep[0] || i > opts.keep[1]);
+    return box(`pg${i}`, 22 + i * 57.5, 106, range, {
+      w: 52,
+      h: 72,
       sans: true,
-      size: 20,
-      tone: i === opts.found ? 'ok' : i === opts.open ? 'warn' : out ? 'idle' : 'info',
-      ring: i === opts.found || i === opts.open,
+      size: 15,
+      tone: i === opts.found ? 'ok' : i === opts.open && !out ? 'warn' : out ? 'idle' : 'info',
+      ring: i === opts.found || (i === opts.open && !out),
       dim: out,
     });
   });
@@ -185,7 +187,7 @@ function mapScene(l: Locale): Scene {
   };
 }
 
-const ALGO_STORY: Record<'recipe' | 'idea' | 'dict' | 'half' | 'found' | 'map', T> = {
+const ALGO_STORY: Record<'recipe' | 'idea' | 'dict' | 'open' | 'discard' | 'found' | 'map', T> = {
   recipe: t(
     'Algo wants a sandwich. The recipe is a list of steps, done one after another.',
     'Algo 想做三明治。食谱就是一串步骤，一步接一步地做。',
@@ -201,25 +203,32 @@ const ALGO_STORY: Record<'recipe' | 'idea' | 'dict' | 'half' | 'found' | 'map', 
     'Понятные шаги, которые решают задачу, называются алгоритмом. Делай по ним — и каждый раз получишь ответ.',
   ),
   dict: t(
-    'Algorithms are everywhere, even in a dictionary. Here is a quick way to find a word. Let us find "robot".',
-    '算法到处都有，查字典也用得上。我们来找“兔子”，它的拼音 tù 以 T 开头。',
-    '演算法到處都有，查字典也用得上。我們來找「猴子」，它的注音以 ㄏ 開頭。',
-    'アルゴリズムはどこにでもあるよ。辞書で言葉をさがすときにもね。「はな」をさがしてみよう。',
-    'Алгоритмы повсюду, даже в словаре. Вот быстрый способ найти слово. Давай найдём «робот».',
+    'Algorithms are everywhere, even in a dictionary. Its words are in alphabetical order. Let us find "robot".',
+    '算法到处都有，查字典也用得上。字典里的词按拼音排好了顺序。我们来找“兔子”，它的拼音 tù 以 T 开头。',
+    '演算法到處都有，查字典也用得上。字典裡的詞按注音排好了順序。我們來找「松鼠」，它的注音以 ㄙ 開頭。',
+    'アルゴリズムはどこにでもあるよ。辞書の言葉は、あいうえお順にならんでいるね。「はな」をさがしてみよう。',
+    'Алгоритмы повсюду, даже в словаре. Слова в нём идут по алфавиту. Давай найдём «робот».',
   ),
-  half: t(
-    'Open the dictionary in the middle: K. R comes after K, so throw away the first half.',
-    '从中间翻开：是 K。T 在 K 后面，所以前一半不要了。',
-    '從中間翻開：是 ㄋ。ㄏ 在 ㄋ 後面，所以前一半不要了。',
-    'まんなかを開くと「た」。「は」は「た」より後ろだから、前の半分はもういらない。',
-    'Открываем словарь посередине: К. Р идёт после К, значит, первую половину откладываем.',
+  open: t(
+    'Open the dictionary in the middle: the K–M pages. "Robot" starts with R, and R comes after M.',
+    '从中间翻开：是 K–M 这几页。“兔子”以 T 开头，T 在 M 后面。',
+    '從中間翻開：是 ㄐ–ㄒ 這幾頁。「松鼠」以 ㄙ 開頭，ㄙ 排在 ㄒ 後面。',
+    'まんなかを開くと「た〜と」のページ。「はな」は「は」ではじまるから、「と」より後ろだね。',
+    'Открываем словарь посередине: страницы К–М. «Робот» начинается на Р, а Р идёт после М.',
+  ),
+  discard: t(
+    'So "robot" cannot be in the first half. Put it away, middle pages too. Half the book is gone in one look!',
+    '所以“兔子”不可能在前一半。把前一半连同中间这几页放到一边。看一眼就去掉了半本书！',
+    '所以「松鼠」不可能在前一半。把前一半連同中間這幾頁放到一邊。看一眼就去掉了半本書！',
+    'だから「はな」は前の半分にはない。まんなかのページもいっしょにおしまい。1 回見ただけで、本の半分がへったよ！',
+    'Значит, в первой половине «робота» нет. Откладываем её вместе с серединой. Один взгляд — и полкниги долой!',
   ),
   found: t(
-    'Open the middle of what is left: R. Found it in just 2 tries!',
-    '再翻开剩下部分的中间：是 T。只翻了 2 次就找到了！',
-    '再翻開剩下部分的中間：是 ㄏ。只翻了 2 次就找到了！',
-    'のこりのまんなかを開くと「は」。たった 2 回で見つかった！',
-    'Открываем середину того, что осталось: Р. Нашли всего за 2 попытки!',
+    'Open the middle of what is left: the R–T pages. "Robot" is here! Found in 2 tries, without reading every page.',
+    '再翻开剩下部分的中间：R–T 这几页。“兔子”就在这里！只翻了 2 次，不用一页一页地找。',
+    '再翻開剩下部分的中間：ㄗ–ㄙ 這幾頁。「松鼠」就在這裡！只翻了 2 次，不用一頁一頁地找。',
+    'のこりのまんなかを開くと「は〜ほ」のページ。「はな」はここ！たった 2 回で見つかった。1 ページずつ読まなくていいんだ。',
+    'Открываем середину того, что осталось: страницы Р–Т. «Робот» здесь! Всего 2 попытки — и не пришлось читать каждую страницу.',
   ),
   map: t(
     'Computers follow algorithms too. A map app uses one to find the shortest way from home to school.',
@@ -248,25 +257,25 @@ const ALGO_PRACTICE: Record<'mixed' | 'askFirst' | 'askNext' | 'done' | 'askHalf
     'Рецепт снова по порядку. Правильные шаги в правильном порядке — это и есть алгоритм!',
   ),
   askHalf: t(
-    'New word: "dog". Algo opens the middle and sees K. Is D before or after K?',
-    '新词：“大象”，拼音 dà 以 D 开头。从中间翻开是 K。D 在 K 的前面还是后面？',
-    '新詞：「貓」，注音以 ㄇ 開頭。從中間翻開是 ㄋ。ㄇ 在 ㄋ 的前面還是後面？',
-    'こんどは「かめ」。まんなかを開くと「た」。「か」は「た」の前？後ろ？',
-    'Новое слово: «гусь». Algo открывает середину и видит К. Г стоит до К или после?',
+    'New word: "dog". Algo opens the middle: the K–M pages. Is D before them or after them?',
+    '新词：“大象”，拼音 dà 以 D 开头。从中间翻开是 K–M 这几页。D 在它们前面还是后面？',
+    '新詞：「老虎」，注音以 ㄌ 開頭。從中間翻開是 ㄐ–ㄒ 這幾頁。ㄌ 在它們前面還是後面？',
+    'こんどは「かめ」。まんなかを開くと「た〜と」のページ。「か」はその前？後ろ？',
+    'Новое слово: «гусь». Algo открывает середину: страницы К–М. Г стоит до них или после?',
   ),
   askMid: t(
-    'Throw away K and everything after it. Which page is in the middle now?',
-    '把 K 和后面的都扔掉。现在中间是哪一页？',
-    '把 ㄋ 和後面的都丟掉。現在中間是哪一頁？',
-    '「た」から後ろはぜんぶいらない。いま、まんなかはどれ？',
-    'Откладываем К и всё, что после. Какая страница теперь посередине?',
+    'Put away K–M and everything after it. Which pages are in the middle now?',
+    '把 K–M 和后面的都放到一边。现在中间是哪几页？',
+    '把 ㄐ–ㄒ 和後面的都放到一邊。現在中間是哪幾頁？',
+    '「た〜と」から後ろはおしまい。いま、まんなかはどのページ？',
+    'Откладываем К–М и всё, что после. Какие страницы теперь посередине?',
   ),
   foundIt: t(
-    'Found "dog" in 2 tries. Algo never had to look at every page!',
-    '只翻了 2 次就找到了“大象”。根本不用一页一页地翻！',
-    '只翻了 2 次就找到了「貓」。根本不用一頁一頁地翻！',
-    '2 回で「かめ」が見つかった。1 ページずつ見なくてもいいんだね！',
-    'Нашли «гусь» за 2 попытки. Не пришлось листать каждую страницу!',
+    'Found "dog" on the D–F pages in 2 tries. Algo never had to look at every page!',
+    '只翻了 2 次，就在 D–F 这几页找到了“大象”。根本不用一页一页地翻！',
+    '只翻了 2 次，就在 ㄉ–ㄌ 這幾頁找到了「老虎」。根本不用一頁一頁地翻！',
+    '2 回で「か〜こ」のページに「かめ」が見つかった。1 ページずつ見なくてもいいんだね！',
+    'Нашли «гусь» на страницах Г–Е за 2 попытки. Не пришлось листать каждую страницу!',
   ),
 };
 
@@ -293,16 +302,16 @@ const ALGO_EXPLAIN: Record<'first' | 'next' | 'half' | 'mid', T> = {
   half: t(
     'D comes before K in the alphabet, so the word is in the first half.',
     '字母表里 D 在 K 前面，所以这个词在前一半。',
-    '注音符號裡 ㄇ 在 ㄋ 前面，所以這個詞在前一半。',
+    '注音符號裡 ㄌ 排在 ㄐ 前面，所以這個詞在前一半。',
     '「か」は「た」より前。だから、言葉は前の半分にあるよ。',
     'В алфавите Г идёт раньше К, значит, слово в первой половине.',
   ),
   mid: t(
-    'D sits in the middle of A, D and G. And it is our letter!',
-    'D 正好在 A、D、G 的中间，而且就是我们要找的字母！',
-    'ㄇ 正好在 ㄅ、ㄇ、ㄉ 的中間，而且就是我們要找的符號！',
-    '「あ・か・さ」のまんなかは「か」。さがしていた字だ！',
-    'Г как раз посередине между А, Г и Ж. И это наша буква!',
+    'D–F is in the middle of A–C, D–F and G–J. And "dog" starts with D, so it is right here!',
+    'D–F 正好在 A–C、D–F、G–J 的中间，而“大象”以 D 开头，就在这里！',
+    'ㄉ–ㄌ 正好在 ㄅ–ㄈ、ㄉ–ㄌ、ㄍ–ㄏ 的中間，而「老虎」以 ㄌ 開頭，就在這裡！',
+    '「あ〜お・か〜こ・さ〜そ」のまんなかは「か〜こ」。「かめ」は「か」ではじまるから、ここにある！',
+    'Г–Е — посередине между А–В, Г–Е и Ж–И. А «гусь» начинается на Г, значит, он здесь!',
   ),
 };
 
@@ -356,7 +365,8 @@ const algorithms: LessonContent = {
       { scene: recipeCard(l), say: S.recipe[l] },
       { scene: flowScene(l), say: S.idea[l] },
       { scene: dictScene(l, word), say: S.dict[l] },
-      { scene: dictScene(l, word, { open: 3, keep: [4, 6] }), say: S.half[l] },
+      { scene: dictScene(l, word, { open: 3 }), say: S.open[l] },
+      { scene: dictScene(l, word, { keep: [4, 6] }), say: S.discard[l] },
       { scene: dictScene(l, word, { found: 5, keep: [4, 6] }), say: S.found[l] },
       { scene: mapScene(l), say: S.map[l] },
     ];
